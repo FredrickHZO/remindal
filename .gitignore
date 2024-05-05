@@ -35,4 +35,4 @@ yarn-error.*
 *.tsbuildinfo
 
 # markdown
-*.md
+docs
