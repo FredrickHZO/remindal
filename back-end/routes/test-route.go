@@ -17,6 +17,7 @@ var (
 	CTX = context.Background()
 
 	errInternalServerError = errors.New("internal server error")
+	errItemAlreadyPresent  = errors.New("item already in database")
 	errNoDocumentsFound    = errors.New("no documents found")
 	errNoNameProvided      = errors.New("no name provided")
 	errNoBodyProvided      = errors.New("no body for request provided")
@@ -93,7 +94,7 @@ func PutUserHandle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := putNewUser(client, newuser); err != nil {
-		res.Err(w, errInternalServerError, 500)
+		res.Err(w, err, 500)
 		return
 	}
 	res.Ok(w, nil)
@@ -104,14 +105,19 @@ func getUser(client *mongo.Client, name string) (database.UserSchema, error) {
 	users := client.Database(database.DB_NAME).Collection(database.USER_COLLECTION)
 
 	var retrieved database.UserSchema
-	err := users.FindOne(CTX, bson.D{{Key: "name", Value: name}}).Decode(&retrieved)
-	// not necessary? if there is no match, should it just return an empty item without error?
+	doc := users.FindOne(CTX, bson.D{{Key: "name", Value: name}})
+	err := doc.Decode(&retrieved)
 	return retrieved, err
 }
 
 // helper - opens collection and puts a new user in the database
 func putNewUser(client *mongo.Client, newuser database.UserSchema) error {
 	users := client.Database(database.DB_NAME).Collection(database.USER_COLLECTION)
+
+	// this is not a correct way to do this, must be changed.
 	_, err := users.InsertOne(CTX, newuser)
-	return err
+	if err != nil {
+		return errItemAlreadyPresent
+	}
+	return nil
 }
