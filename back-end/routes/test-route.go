@@ -107,7 +107,13 @@ func getUser(client *mongo.Client, name string) (database.UserSchema, error) {
 	var retrieved database.UserSchema
 	doc := users.FindOne(CTX, bson.D{{Key: "name", Value: name}})
 	err := doc.Decode(&retrieved)
-	return retrieved, err
+	if err == nil {
+		return retrieved, nil
+	}
+	if err == mongo.ErrNoDocuments {
+		return database.UserSchema{}, errNoDocumentsFound
+	}
+	return database.UserSchema{}, errInternalServerError
 }
 
 // helper - opens collection and puts a new user in the database
