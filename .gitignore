@@ -38,3 +38,9 @@ yarn-error.*
 
 # markdown
 docs
+
+# build
+*.exe
+
+# tokens
+mongouri
