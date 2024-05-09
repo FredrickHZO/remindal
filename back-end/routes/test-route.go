@@ -58,7 +58,7 @@ func GetUserHandle(w http.ResponseWriter, r *http.Request) {
 	retrievedUser, err := getUser(client, name)
 	// not necessary? see helper function comment
 	if err != nil {
-		res.Err(w, errNoDocumentsFound, 400)
+		res.Err(w, err, 400)
 		return
 	}
 	res.Ok(w, retrievedUser)
