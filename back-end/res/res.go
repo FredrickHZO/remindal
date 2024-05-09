@@ -6,27 +6,38 @@ import (
 	"net/http"
 )
 
-type Response struct {
-	Message string `json:"message"`
+type BaseAPI struct {
+	Ok      bool   `json:"ok"`
+	Message string `json:"message,omitempty"`
 }
 
-func Err(w http.ResponseWriter, status int) {
-	res := Response{Message: "error"}
+type Response struct {
+	Base BaseAPI
+	Res  interface{} `json:"res,omitempty"`
+}
+
+func Err(w http.ResponseWriter, err error, status int) {
+	res := BaseAPI{Ok: false, Message: err.Error()}
 
 	json, err := json.Marshal(res)
 	if err != nil {
-		log.Fatal("eres - json.Marshal")
+		log.Fatal("Err - json.Marshal")
+		return
 	}
 	w.WriteHeader(status)
 	w.Write(json)
 }
 
-func Ok(w http.ResponseWriter) {
-	res := Response{Message: "ok"}
+func Ok(w http.ResponseWriter, item interface{}) {
+	res := Response{
+		Base: BaseAPI{Ok: true},
+		Res:  item,
+	}
 
 	json, err := json.Marshal(res)
 	if err != nil {
 		log.Fatal("okres - json.Marshal")
+		return
 	}
 	w.Write(json)
 }
