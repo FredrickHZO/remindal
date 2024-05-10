@@ -16,16 +16,23 @@ import (
 var (
 	CTX = context.Background()
 
+	EMAIL_KEY_DB   = "_id"
+	EMAIL_KEY_JSON = "email"
+
 	errInternalServerError = errors.New("internal server error")
 	errItemAlreadyPresent  = errors.New("item already in database")
 	errNoDocumentsFound    = errors.New("no documents found")
-	errNoNameProvided      = errors.New("no name provided")
+	errNoEmailProvided     = errors.New("no email provided")
 	errNoBodyProvided      = errors.New("no body for request provided")
 )
 
 // gets the list of users in the database
 func GetUsersListHandle(w http.ResponseWriter, r *http.Request) {
-	client := database.OpenConnection()
+	client, err := database.OpenConnection()
+	if err != nil {
+		res.Err(w, err, 500)
+		return
+	}
 	defer database.CloseConnection(client)
 
 	users := client.Database(database.DB_NAME).Collection(database.USER_COLLECTION)
@@ -46,17 +53,20 @@ func GetUsersListHandle(w http.ResponseWriter, r *http.Request) {
 
 // gets a single user from database
 func GetUserHandle(w http.ResponseWriter, r *http.Request) {
-	client := database.OpenConnection()
+	client, err := database.OpenConnection()
+	if err != nil {
+		res.Err(w, err, 500)
+		return
+	}
 	defer database.CloseConnection(client)
 
-	name := r.URL.Query().Get("name")
-	if name == "" {
-		res.Err(w, errNoNameProvided, 400)
+	email := r.URL.Query().Get(EMAIL_KEY_JSON)
+	if email == "" {
+		res.Err(w, errNoEmailProvided, 400)
 		return
 	}
 
-	retrievedUser, err := getUser(client, name)
-	// not necessary? see helper function comment
+	retrievedUser, err := getUser(client, email)
 	if err != nil {
 		res.Err(w, err, 400)
 		return
@@ -64,7 +74,7 @@ func GetUserHandle(w http.ResponseWriter, r *http.Request) {
 	res.Ok(w, retrievedUser)
 }
 
-// decodes the request body
+// decodes the request body - THIS IS A GENERIC FUNCTION, MUST HAVE ITS OWN PLACE INSIDE A PACKAGE
 func decodeRequestBody(b io.Reader) ([]byte, error) {
 	body, err := io.ReadAll(b)
 	if err != nil {
@@ -78,7 +88,11 @@ func decodeRequestBody(b io.Reader) ([]byte, error) {
 
 // handles the put request to add a new user to database
 func PutUserHandle(w http.ResponseWriter, r *http.Request) {
-	client := database.OpenConnection()
+	client, err := database.OpenConnection()
+	if err != nil {
+		res.Err(w, err, 500)
+		return
+	}
 	defer database.CloseConnection(client)
 
 	body, err := decodeRequestBody(r.Body)
@@ -94,7 +108,7 @@ func PutUserHandle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := putNewUser(client, newuser); err != nil {
-		res.Err(w, err, 500)
+		res.Err(w, err, 400)
 		return
 	}
 	res.Ok(w, nil)
@@ -105,7 +119,7 @@ func getUser(client *mongo.Client, name string) (database.UserSchema, error) {
 	users := client.Database(database.DB_NAME).Collection(database.USER_COLLECTION)
 
 	var retrieved database.UserSchema
-	doc := users.FindOne(CTX, bson.D{{Key: "name", Value: name}})
+	doc := users.FindOne(CTX, bson.D{{Key: EMAIL_KEY_DB, Value: name}})
 	err := doc.Decode(&retrieved)
 	if err == nil {
 		return retrieved, nil
