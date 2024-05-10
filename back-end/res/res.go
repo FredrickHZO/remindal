@@ -54,10 +54,7 @@ func Ok(w http.ResponseWriter, item interface{}) {
 		return
 	}
 
-	if item != nil {
-		w.Header().Set("Content-Type", "application/json")
-	}
-
+	w.Header().Set("Content-Type", "application/json")
 	if _, err = w.Write(json); err != nil {
 		log.Println("res.Ok - w.Write ", err)
 	}
