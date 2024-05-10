@@ -21,11 +21,14 @@ func Err(w http.ResponseWriter, err error, status int) {
 
 	json, err := json.Marshal(res)
 	if err != nil {
-		log.Fatal("Err - json.Marshal")
+		log.Println("res.Err - json.Marshal ", err)
 		return
 	}
 	w.WriteHeader(status)
-	w.Write(json)
+	if _, err = w.Write(json); err != nil {
+		log.Println("res.Err - w.Write ", err)
+	}
+
 }
 
 func Ok(w http.ResponseWriter, item interface{}) {
@@ -36,8 +39,10 @@ func Ok(w http.ResponseWriter, item interface{}) {
 
 	json, err := json.Marshal(res)
 	if err != nil {
-		log.Fatal("okres - json.Marshal")
+		log.Println("res.Ok - json.Marshal ", err)
 		return
 	}
-	w.Write(json)
+	if _, err = w.Write(json); err != nil {
+		log.Println("res.Ok - w.Write ", err)
+	}
 }
