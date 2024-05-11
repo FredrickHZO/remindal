@@ -11,7 +11,7 @@ type BaseAPI struct {
 	Message string `json:"message,omitempty"`
 }
 
-type Response struct {
+type ResponseAPI struct {
 	Base BaseAPI
 	Res  interface{} `json:"res,omitempty"`
 }
@@ -43,7 +43,7 @@ part of the HTTP response in the body.
 Automatically sets the HTTP status to 200.
 */
 func Ok(w http.ResponseWriter, item interface{}) {
-	res := Response{
+	res := ResponseAPI{
 		Base: BaseAPI{Ok: true},
 		Res:  item,
 	}
