@@ -3,7 +3,6 @@ package routes
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -19,12 +18,6 @@ var (
 
 	EMAIL_KEY_DB   = "_id"
 	EMAIL_KEY_JSON = "email"
-
-	errInternalServerError = errors.New(http.StatusText(http.StatusInternalServerError))
-	errItemAlreadyPresent  = errors.New("item already in database")
-	errNoDocumentsFound    = errors.New("no documents found")
-	errNoEmailProvided     = errors.New("no email provided")
-	errNoBodyProvided      = errors.New("no body for request provided")
 )
 
 // gets the list of users in the database
@@ -46,7 +39,7 @@ func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
 	var retrievedUserList []database.UserSchema
 	if err := cursor.All(CTX, &retrievedUserList); err != nil {
 		// this should also be errNoDocumentsFound?
-		res.Err(w, errInternalServerError, http.StatusInternalServerError)
+		res.Err(w, ErrInternalServerError, http.StatusInternalServerError)
 		return
 	}
 	res.Ok(w, retrievedUserList)
@@ -63,7 +56,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	email := r.URL.Query().Get(EMAIL_KEY_JSON)
 	if email == "" {
-		res.Err(w, errNoEmailProvided, http.StatusBadRequest)
+		res.Err(w, ErrNoEmailProvided, http.StatusBadRequest)
 		return
 	}
 
@@ -93,7 +86,7 @@ func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 	var newuser database.UserSchema
 	if err := json.Unmarshal(body, &newuser); err != nil {
 		log.Println("PutUserHandle - json.Unmarshal ", err)
-		res.Err(w, errInternalServerError, http.StatusInternalServerError)
+		res.Err(w, ErrInternalServerError, http.StatusInternalServerError)
 		return
 	}
 
@@ -122,10 +115,10 @@ func decodeRequestBody(b io.Reader) ([]byte, int, error) {
 	body, err := io.ReadAll(b)
 	if err != nil {
 		log.Println("decodeRequestBody - io.ReadAll ", err)
-		return nil, http.StatusInternalServerError, errInternalServerError
+		return nil, http.StatusInternalServerError, ErrInternalServerError
 	}
 	if len(body) <= 0 {
-		return nil, http.StatusBadRequest, errNoBodyProvided
+		return nil, http.StatusBadRequest, ErrNoBodyProvided
 	}
 	return body, http.StatusOK, nil
 }
@@ -141,9 +134,9 @@ func getUser(client *mongo.Client, name string) (database.UserSchema, error) {
 		return retrieved, nil
 	}
 	if err == mongo.ErrNoDocuments {
-		return database.UserSchema{}, errNoDocumentsFound
+		return database.UserSchema{}, ErrNoDocumentsFound
 	}
-	return database.UserSchema{}, errInternalServerError
+	return database.UserSchema{}, ErrInternalServerError
 }
 
 // helper - opens collection and puts a new user in the database
@@ -153,7 +146,7 @@ func putNewUser(client *mongo.Client, newuser database.UserSchema) error {
 	// this is not a correct way to do this, must be changed.
 	_, err := users.InsertOne(CTX, newuser)
 	if err != nil {
-		return errItemAlreadyPresent
+		return ErrItemAlreadyPresent
 	}
 	return nil
 }
