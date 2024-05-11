@@ -2,16 +2,18 @@ package main
 
 import (
 	_ "embed"
+	"flag"
 	"log"
 	"net/http"
 	"remindal/routes"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 var (
 	router *mux.Router = mux.NewRouter()
-	port   string      = ":8080"
+	port   string
 )
 
 func handleTestRoutes() {
@@ -21,8 +23,12 @@ func handleTestRoutes() {
 }
 
 func main() {
+	flag.StringVar(&port, "port", ":8080", "The port the server will use to listen to requests")
+	flag.Parse()
+
 	handleTestRoutes()
 
-	log.Print("server will be listening on port", port)
-	log.Fatal(http.ListenAndServe(port, router))
+	handler := cors.Default().Handler(router)
+	log.Print("server will be listening on port ", port)
+	log.Fatal(http.ListenAndServe(port, handler))
 }

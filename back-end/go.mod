@@ -17,3 +17,5 @@ require (
 	golang.org/x/sync v0.1.0
 	golang.org/x/text v0.14.0
 )
+
+require github.com/rs/cors v1.11.0 // indirect
