@@ -20,10 +20,13 @@ var (
 	errCouldNotReachDatabase = errors.New("could not reach database")
 )
 
+/*
+Closes connection to te Remindal database
+*/
 func CloseConnection(client *mongo.Client) {
 	err := client.Disconnect(context.Background())
 	if err != nil {
-		log.Println("database - CloseConnection ", err)
+		log.Println("database.CloseConnection - client.Disconnect ", err)
 	}
 }
 
@@ -39,7 +42,7 @@ func OpenConnection() (*mongo.Client, error) {
 
 	client, err := mongo.Connect(context.Background(), opts)
 	if err != nil {
-		log.Println("database - OpenConnection ", err)
+		log.Println("database.OpenConnection - mongo.Connect ", err)
 		return nil, errCouldNotReachDatabase
 	}
 	return client, nil
