@@ -62,7 +62,7 @@ Opens connection to the database and retrieves an item that has [value] as its p
 Usage
 
 	var destination mySchema
-	err := GetOne(myCollection, &destination)
+	err := GetOne(myCollection, "_id", "email@person.com" &destination)
 
 returns [ErrInternalServerError] in case a connection with the database can't be established.
 
@@ -121,6 +121,11 @@ Opens connection to the database and deletes an item that has [value] as its pri
 	{ _id: email@person.com, name: Jhon }
 	key = _id
 	value = email@person.com
+
+	Usage
+
+	var destination mySchema
+	err := DeleteOne(myCollection, "_id", "email@person.com" &destination)
 
 returns [ErrInternalServerError] in case a connection with the database can't be established.
 
