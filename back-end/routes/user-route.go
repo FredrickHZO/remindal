@@ -79,7 +79,7 @@ func DelUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := db.DeleteOne(db.USER_COLLECTION, EMAIL_KEY_DB, userEmail)
 	if err != nil {
-		status := StatusError(err)
+		status := statusError(err)
 		res.Err(w, err, status)
 		return
 	}
