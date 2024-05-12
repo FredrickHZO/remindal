@@ -34,7 +34,7 @@ func decodeRequestBody(b io.Reader) ([]byte, int, error) {
 /*
 Given an error, it returns the correct HTTP error code status.
 */
-func StatusError(err error) int {
+func statusError(err error) int {
 	var status int
 	if err == remerr.ErrInternalServerError {
 		status = http.StatusInternalServerError
