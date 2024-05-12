@@ -19,16 +19,16 @@ Should the body be empty, returns [nil] for the byte array, [http.StatusBadReque
 In case the body is correctly read it will return the body as a byte array, [http.StatusOK] as code status
 and [nil] for the error.
 */
-func decodeRequestBody(b io.Reader) ([]byte, int, error) {
+func decodeRequestBody(b io.Reader) ([]byte, error) {
 	body, err := io.ReadAll(b)
 	if err != nil {
 		log.Println("decodeRequestBody - io.ReadAll ", err)
-		return nil, http.StatusInternalServerError, remerr.ErrInternalServerError
+		return nil, remerr.ErrInternalServerError
 	}
 	if len(body) <= 0 {
-		return nil, http.StatusBadRequest, remerr.ErrNoBodyProvided
+		return nil, remerr.ErrNoBodyProvided
 	}
-	return body, http.StatusOK, nil
+	return body, nil
 }
 
 /*

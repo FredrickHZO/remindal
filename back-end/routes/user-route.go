@@ -50,9 +50,10 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PutUserHandler(w http.ResponseWriter, r *http.Request) {
-	body, statusCode, err := decodeRequestBody(r.Body)
+	body, err := decodeRequestBody(r.Body)
 	if err != nil {
-		res.Err(w, err, statusCode)
+		status := statusError(err)
+		res.Err(w, err, status)
 		return
 	}
 
