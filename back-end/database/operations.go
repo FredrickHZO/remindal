@@ -26,7 +26,6 @@ func GetMany(client *mongo.Client, collection string, dest any) error {
 	return nil
 }
 
-// helper - opens collection and gets a single user from database
 func GetOne(client *mongo.Client, collection string, key string, value string, dest any) error {
 	c := client.Database(DB_NAME).Collection(collection)
 
@@ -41,7 +40,6 @@ func GetOne(client *mongo.Client, collection string, key string, value string, d
 	return remerr.ErrInternalServerError
 }
 
-// helper - opens collection and puts a new user in the database
 func PutOne(client *mongo.Client, collection string, doc any) error {
 	c := client.Database(DB_NAME).Collection(collection)
 
