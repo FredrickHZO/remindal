@@ -42,7 +42,7 @@ part of the HTTP response in the body.
 
 Automatically sets the HTTP status to 200.
 */
-func Ok(w http.ResponseWriter, item interface{}) {
+func Ok(w http.ResponseWriter, item any) {
 	res := ResponseAPI{
 		Base: BaseAPI{Ok: true},
 		Res:  item,
