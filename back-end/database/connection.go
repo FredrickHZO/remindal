@@ -21,7 +21,7 @@ var (
 /*
 Closes connection to te Remindal database
 */
-func CloseConnection(client *mongo.Client) {
+func closeConnection(client *mongo.Client) {
 	err := client.Disconnect(context.Background())
 	if err != nil {
 		log.Println("database.CloseConnection - client.Disconnect ", err)
@@ -34,7 +34,7 @@ Opens connection to the Remindal database.
 Should the attempt to establish a connection fail, returns [nil] for the client and
 [ErrInternalServerError] error.
 */
-func OpenConnection() (*mongo.Client, error) {
+func openConnection() (*mongo.Client, error) {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(mongoURI).SetServerAPIOptions(serverAPI)
 

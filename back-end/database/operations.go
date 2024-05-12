@@ -16,7 +16,7 @@ var (
 WIP - Opens connection to the database and retrieves an array of items that have [value] as its primary key / unique key value.
 [key] is the primary key / unique key to search for in the database
 
-	{ _id: email@person.com, name: Jhon }
+	{ _id: email@person.com, name: John }
 	key = _id
 	value = email@person.com
 
@@ -32,11 +32,11 @@ returns [ErrInternalServerError] in case the retrieval operations fails.
 returns [ErrNoDocumentsFound] in case no item matches the value provided.
 */
 func GetMany(collection string, dest any) error {
-	client, err := OpenConnection()
+	client, err := openConnection()
 	if err != nil {
 		return remerr.ErrInternalServerError
 	}
-	defer CloseConnection(client)
+	defer closeConnection(client)
 
 	c := client.Database(DB_NAME).Collection(collection)
 	// TODO: must work with any filter applied
@@ -55,7 +55,7 @@ func GetMany(collection string, dest any) error {
 Opens connection to the database and retrieves an item that has [value] as its primary key / unique key value.
 [key] is the primary key / unique key to search for in the database
 
-	{ _id: email@person.com, name: Jhon }
+	{ _id: email@person.com, name: John }
 	key = _id
 	value = email@person.com
 
@@ -71,11 +71,11 @@ returns [ErrInternalServerError] in case the retrieval operations fails.
 returns [ErrNoDocumentsFound] in case no item matches the value provided.
 */
 func GetOne(collection string, key string, value string, dest any) error {
-	client, err := OpenConnection()
+	client, err := openConnection()
 	if err != nil {
 		return remerr.ErrInternalServerError
 	}
-	defer CloseConnection(client)
+	defer closeConnection(client)
 
 	c := client.Database(DB_NAME).Collection(collection)
 
@@ -98,11 +98,11 @@ returns [ErrInternalServerError] in case a connection with the database can't be
 returns [ErrItemAlreadyPresent] in case there is a collision with the primary key of an item in the database.
 */
 func PutOne(collection string, doc any) error {
-	client, err := OpenConnection()
+	client, err := openConnection()
 	if err != nil {
 		return remerr.ErrInternalServerError
 	}
-	defer CloseConnection(client)
+	defer closeConnection(client)
 
 	c := client.Database(DB_NAME).Collection(collection)
 
@@ -129,11 +129,11 @@ returns [ErrInternalServerError] in case the delete operations fails.
 returns [ErrNoDocumentsFound] in case no item matches the value provided.
 */
 func DeleteOne(collection string, key string, value string) error {
-	client, err := OpenConnection()
+	client, err := openConnection()
 	if err != nil {
 		return remerr.ErrInternalServerError
 	}
-	defer CloseConnection(client)
+	defer closeConnection(client)
 
 	c := client.Database(DB_NAME).Collection(collection)
 

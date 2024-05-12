@@ -13,7 +13,7 @@ type BaseAPI struct {
 
 type ResponseAPI struct {
 	Base BaseAPI
-	Res  interface{} `json:"res,omitempty"`
+	Res  any `json:"res,omitempty"`
 }
 
 /*
