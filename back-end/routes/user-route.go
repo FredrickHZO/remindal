@@ -42,7 +42,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		&retrievedUser,
 	)
 	if err != nil {
-		status := StatusError(err)
+		status := statusError(err)
 		res.Err(w, err, status)
 		return
 	}
