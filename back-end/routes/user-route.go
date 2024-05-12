@@ -18,15 +18,9 @@ var (
 )
 
 func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
-	client, err := db.OpenConnection()
-	if err != nil {
-		res.Err(w, err, http.StatusInternalServerError)
-		return
-	}
-	defer db.CloseConnection(client)
-
+	// TODO: must work with any filter applied
 	var retrievedUserList []db.UserSchema
-	err = db.GetMany(client, db.USER_COLLECTION, &retrievedUserList)
+	err := db.GetMany(db.USER_COLLECTION, &retrievedUserList)
 	if err != nil {
 		res.Err(w, err, http.StatusInternalServerError)
 	}
@@ -34,13 +28,6 @@ func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
-	client, err := db.OpenConnection()
-	if err != nil {
-		res.Err(w, err, http.StatusInternalServerError)
-		return
-	}
-	defer db.CloseConnection(client)
-
 	userEmail := r.URL.Query().Get(EMAIL_KEY_JSON)
 	if userEmail == "" {
 		res.Err(w, remerr.ErrNoEmailProvided, http.StatusBadRequest)
@@ -48,28 +35,21 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var retrievedUser db.UserSchema
-	err = db.GetOne(
-		client,
+	err := db.GetOne(
 		db.USER_COLLECTION,
 		EMAIL_KEY_DB,
 		userEmail,
 		&retrievedUser,
 	)
 	if err != nil {
-		res.Err(w, err, http.StatusInternalServerError)
+		status := StatusError(err)
+		res.Err(w, err, status)
 		return
 	}
 	res.Ok(w, retrievedUser)
 }
 
 func PutUserHandler(w http.ResponseWriter, r *http.Request) {
-	client, err := db.OpenConnection()
-	if err != nil {
-		res.Err(w, err, http.StatusInternalServerError)
-		return
-	}
-	defer db.CloseConnection(client)
-
 	body, statusCode, err := decodeRequestBody(r.Body)
 	if err != nil {
 		res.Err(w, err, statusCode)
@@ -83,7 +63,7 @@ func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.PutOne(client, db.USER_COLLECTION, newuser); err != nil {
+	if err := db.PutOne(db.USER_COLLECTION, newuser); err != nil {
 		res.Err(w, err, http.StatusBadRequest)
 		return
 	}
@@ -91,26 +71,15 @@ func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DelUserHandler(w http.ResponseWriter, r *http.Request) {
-	client, err := db.OpenConnection()
-	if err != nil {
-		res.Err(w, err, http.StatusInternalServerError)
-	}
-	defer db.CloseConnection(client)
-
 	userEmail := r.URL.Query().Get(EMAIL_KEY_JSON)
 	if userEmail == "" {
 		res.Err(w, remerr.ErrNoEmailProvided, http.StatusBadRequest)
 		return
 	}
 
-	err = db.DeleteOne(client, db.USER_COLLECTION, EMAIL_KEY_DB, userEmail)
+	err := db.DeleteOne(db.USER_COLLECTION, EMAIL_KEY_DB, userEmail)
 	if err != nil {
-		var status int
-		if err == remerr.ErrInternalServerError {
-			status = http.StatusInternalServerError
-		} else {
-			status = http.StatusBadRequest
-		}
+		status := StatusError(err)
 		res.Err(w, err, status)
 		return
 	}

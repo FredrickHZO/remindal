@@ -10,16 +10,14 @@ import (
 /*
 Decodes the body in the HTTP request and returns it as a byte array.
 
-If there is an error trying to read the request body, returns [nil] for the byte array, [InternalServerError]
-as code status and [errInternalServerError] as error.
+If there is an error trying to read the request body, returns [nil] for the byte array, [http.StatusInternalServerError]
+as code status and [ErrInternalServerError] as error.
 
-Should the body be empty, returns [nil] for the byte array, [StatusBadRequest] as code status and
-[errNoBodyProvided] as error.
+Should the body be empty, returns [nil] for the byte array, [http.StatusBadRequest] as code status and
+[ErrNoBodyProvided] as error.
 
-In case the body is correctly read it will return the body as a byte array, [StatusOK] as code status
+In case the body is correctly read it will return the body as a byte array, [http.StatusOK] as code status
 and [nil] for the error.
-
-TODO: move function.
 */
 func decodeRequestBody(b io.Reader) ([]byte, int, error) {
 	body, err := io.ReadAll(b)
@@ -31,4 +29,17 @@ func decodeRequestBody(b io.Reader) ([]byte, int, error) {
 		return nil, http.StatusBadRequest, remerr.ErrNoBodyProvided
 	}
 	return body, http.StatusOK, nil
+}
+
+/*
+Given an error, it returns the correct HTTP error code status.
+*/
+func StatusError(err error) int {
+	var status int
+	if err == remerr.ErrInternalServerError {
+		status = http.StatusInternalServerError
+	} else {
+		status = http.StatusBadRequest
+	}
+	return status
 }

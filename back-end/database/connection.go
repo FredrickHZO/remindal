@@ -3,8 +3,8 @@ package database
 import (
 	"context"
 	_ "embed"
-	"errors"
 	"log"
+	remerr "remindal/errors"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -16,8 +16,6 @@ var (
 	DB_NAME             = "remindalDB"
 	CALENDAR_COLLECTION = "calendar"
 	USER_COLLECTION     = "users"
-
-	errCouldNotReachDatabase = errors.New("could not reach database")
 )
 
 /*
@@ -34,7 +32,7 @@ func CloseConnection(client *mongo.Client) {
 Opens connection to the Remindal database.
 
 Should the attempt to establish a connection fail, returns [nil] for the client and
-[errCouldNotReachDatabase] error.
+[ErrInternalServerError] error.
 */
 func OpenConnection() (*mongo.Client, error) {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
@@ -43,7 +41,7 @@ func OpenConnection() (*mongo.Client, error) {
 	client, err := mongo.Connect(context.Background(), opts)
 	if err != nil {
 		log.Println("database.OpenConnection - mongo.Connect ", err)
-		return nil, errCouldNotReachDatabase
+		return nil, remerr.ErrInternalServerError
 	}
 	return client, nil
 }

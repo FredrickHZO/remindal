@@ -8,7 +8,6 @@ var (
 	// database response errors
 	ErrItemAlreadyPresent = errors.New("item already in database")
 	ErrNoDocumentsFound   = errors.New("no documents found")
-	ErrNoItemToDelete     = errors.New("no item to delete matched the filters")
 
 	// request parsing errors
 	ErrNoBodyProvided = errors.New("no body for request provided")
