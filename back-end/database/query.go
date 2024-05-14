@@ -26,12 +26,8 @@ var (
 /*
 ToMongoQuery converts the query parameters from an HTTP request into a MongoDB compatible query.
 
-The function iterates over the query parameters, identifies the type of filter (range, list, or single value),
+Iterates over the query parameters, identifies the type of filter (range, list, or single value),
 and constructs a corresponding BSON filter.
-
-@param query: The URL query parameters
-@return bson.D: The BSON filters for the database query
-@return error: Any error that occurred during conversion
 */
 func ToMongoQuery(query url.Values) (bson.D, error) {
 	var queryDoc bson.D
@@ -61,10 +57,7 @@ func ToMongoQuery(query url.Values) (bson.D, error) {
 }
 
 /*
-getBsonDatabaseKey converts the key name in the HTTP request to the corresponding database key name.
-
-@param k: The key in the HTTP query
-@return string: The corresponding database key name
+Converts the key name in the HTTP request to the corresponding database key name.
 */
 func getBsonDatabaseKey(k string) string {
 	if item, ok := keyMap[k]; ok {
@@ -74,15 +67,11 @@ func getBsonDatabaseKey(k string) string {
 }
 
 /*
-processMultipleSelectionRequest handles a multiple selection in the HTTP request. A multiple selection takes the form:
+Handles a multiple selection in the HTTP request. A multiple selection takes the form:
 
 	key=val1%,val2%,val3%,val4%,val5
 
-It splits the string containing the values and creates the appropriate query using the "$or" operator.
-
-@param k: The key in the HTTP query
-@param v: The value in the HTTP query containing the multiple selection
-@return primitive.E: The BSON filter for the multiple selection
+Splits the string containing the values and creates the appropriate query using the "$or" operator.
 */
 func processMultipleSelectionRequest(k string, v string) (primitive.E, error) {
 	if !contains(multipleSelectionKeys, k) {
@@ -100,14 +89,10 @@ func processMultipleSelectionRequest(k string, v string) (primitive.E, error) {
 /*
 contains checks if a specific key is present in an array of keys.
 
-This function is used to validate that a key from the HTTP request is allowed
+Validates that a key from the HTTP request is allowed
 to have certain types of values (e.g., multiple selection or range values).
 By ensuring the key is within the predefined allowed keys, it helps maintain
 the integrity of the query formation process.
-
-@param allowedKeys: The array of allowed keys
-@param key: The key to check for presence in the array
-@return bool: True if the key is found in the array, otherwise false
 */
 func contains(allowedKeys []string, key string) bool {
 	for _, item := range allowedKeys {
@@ -119,18 +104,13 @@ func contains(allowedKeys []string, key string) bool {
 }
 
 /*
-processRangeInRequest handles a range in the HTTP request. A range takes the form:
+Handles a range in the HTTP request. A range takes the form:
 
 	key=val1%-val2
 
-It splits the string containing the range and creates the appropriate query.
+Splits the string containing the range and creates the appropriate query.
 If only one value is present in the range, the resulting query will include all values
 greater than or equal to (or less than or equal to) the specified value.
-
-@param k: The key in the HTTP query
-@param v: The value in the HTTP query containing the range
-@return primitive.E: The BSON filter for the range
-@return error: Any error that occurred during conversion
 */
 func processRangeInRequest(k string, v string) (primitive.E, error) {
 	if !contains(rangeKeys, k) {
@@ -167,14 +147,8 @@ func processRangeInRequest(k string, v string) (primitive.E, error) {
 }
 
 /*
-singleValRange processes a range that has a single value.
+Processes a range that has a single value.
 The condition for the query must be specified, either "$gte" or "$lte".
-
-@param v: The value in the range
-@param cond: The BSON query document
-@param logg: The condition for the range ("$gte" or "$lte")
-@return bson.D: The updated BSON query document
-@return error: Any error that occurred during conversion
 */
 func singleValRange(v string, cond bson.D, logg string) (bson.D, error) {
 	lte, err := strconv.Atoi(v)
@@ -186,12 +160,7 @@ func singleValRange(v string, cond bson.D, logg string) (bson.D, error) {
 }
 
 /*
-fullValRange processes a range and creates a query with the correct range format.
-
-@param v: The values in the range
-@param cond: The BSON query document
-@return bson.D: The updated BSON query document
-@return error: Any error that occurred during conversion
+Processes a range and creates a query with the correct range format.
 */
 func fullValRange(v []string, cond bson.D) (bson.D, error) {
 	gte, err := strconv.Atoi(v[0])

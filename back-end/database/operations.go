@@ -21,14 +21,8 @@ Usage:
 	var destination []mySchema
 	err := GetMany(myCollection, bson.D{{Key: "_id", Value: "email@person.com"}}, &destination)
 
-@param collectionName: The name of the MongoDB collection to query.
-@param query: The BSON query filter to apply.
-@param dest: A pointer to the variable where the results will be stored.
-@return error: An error object if any error occurs during the operation.
-
-Possible errors:
-- [ErrInternalServerError]: If a connection to the database cannot be established or if the retrieval operation fails.
-- [ErrNoDocumentsFound]: If no documents match the query.
+[ErrInternalServerError]: If a connection to the database cannot be established or if the retrieval operation fails.
+[ErrNoDocumentsFound]: If no documents match the query.
 */
 func GetMany(collectionName string, query bson.D, dest any) error {
 	client, err := openConnection()
@@ -50,7 +44,6 @@ func GetMany(collectionName string, query bson.D, dest any) error {
 
 /*
 Opens a connection to the database and retrieves a single document that matches the provided key-value pair.
-
 Fetches a document based on the specified key and value and unmarshals the result into the provided destination.
 
 Usage:
@@ -58,15 +51,8 @@ Usage:
 	var destination mySchema
 	err := GetOne(myCollection, "_id", "email@person.com", &destination)
 
-@param collectionName: The name of the MongoDB collection to query.
-@param key: The key to search for in the database (e.g., "_id").
-@param value: The value of the key to match in the query.
-@param dest: A pointer to the variable where the result will be stored.
-@return error: An error object if any error occurs during the operation.
-
-Possible errors:
-- [ErrInternalServerError]: If a connection to the database cannot be established or if the retrieval operation fails.
-- [ErrNoDocumentsFound]: If no document matches the key-value pair.
+[ErrInternalServerError]: If a connection to the database cannot be established or if the retrieval operation fails.
+[ErrNoDocumentsFound]: If no document matches the key-value pair.
 */
 func GetOne(collectionName string, key string, value string, dest any) error {
 	client, err := openConnection()
@@ -91,17 +77,8 @@ func GetOne(collectionName string, key string, value string, dest any) error {
 /*
 Opens a connection to the database and inserts the provided document into the specified collection.
 
-Usage:
-
-	err := PutOne(myCollection, myDocument)
-
-@param collectionName: The name of the MongoDB collection to insert the document into.
-@param doc: The document to be inserted.
-@return error: An error object if any error occurs during the operation.
-
-Possible errors:
-- [ErrInternalServerError]: If a connection to the database cannot be established.
-- [ErrItemAlreadyPresent]: If there is a collision with the primary key of an existing item in the database.
+[ErrInternalServerError]: If a connection to the database cannot be established.
+[ErrItemAlreadyPresent]: If there is a collision with the primary key of an existing item in the database.
 */
 func PutOne(collectionName string, doc any) error {
 	client, err := openConnection()
@@ -123,18 +100,8 @@ func PutOne(collectionName string, doc any) error {
 /*
 Opens a connection to the database and deletes a document that matches the provided key-value pair.
 
-Usage:
-
-	err := DeleteOne(myCollection, "_id", "email@person.com")
-
-@param collectionName: The name of the MongoDB collection to delete the document from.
-@param key: The key to search for in the database (e.g., "_id").
-@param value: The value of the key to match in the query.
-@return error: An error object if any error occurs during the operation.
-
-Possible errors:
-- [ErrInternalServerError]: If a connection to the database cannot be established or if the delete operation fails.
-- [ErrNoDocumentsFound]: If no document matches the key-value pair.
+[ErrInternalServerError]: If a connection to the database cannot be established or if the delete operation fails.
+[ErrNoDocumentsFound]: If no document matches the key-value pair.
 */
 func DeleteOne(collectionName string, key string, value string) error {
 	client, err := openConnection()
