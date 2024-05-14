@@ -13,38 +13,35 @@ var (
 )
 
 /*
-WIP - Opens connection to the database and retrieves an array of items that have [value] as its primary key / unique key value.
-[key] is the primary key / unique key to search for in the database
+Opens a connection to the database and retrieves an array of items that match the provided query.
+Fetches multiple documents based on the specified query filter and unmarshals the results into the provided destination.
 
-	{ _id: email@person.com, name: John }
-	key = _id
-	value = email@person.com
-
-Usage
+Usage:
 
 	var destination []mySchema
-	err := GetMany(myCollection, &destination)
+	err := GetMany(myCollection, bson.D{{Key: "_id", Value: "email@person.com"}}, &destination)
 
-returns [ErrInternalServerError] in case a connection with the database can't be established.
+@param collectionName: The name of the MongoDB collection to query.
+@param query: The BSON query filter to apply.
+@param dest: A pointer to the variable where the results will be stored.
+@return error: An error object if any error occurs during the operation.
 
-returns [ErrInternalServerError] in case the retrieval operations fails.
-
-returns [ErrNoDocumentsFound] in case no item matches the value provided.
+Possible errors:
+- [ErrInternalServerError]: If a connection to the database cannot be established or if the retrieval operation fails.
+- [ErrNoDocumentsFound]: If no documents match the query.
 */
-func GetMany(collection string, dest any) error {
+func GetMany(collectionName string, query bson.D, dest any) error {
 	client, err := openConnection()
 	if err != nil {
 		return remerr.ErrInternalServerError
 	}
 	defer closeConnection(client)
 
-	c := client.Database(DB_NAME).Collection(collection)
-	// TODO: must work with any filter applied
-	cursor, err := c.Find(CTX, bson.D{{}})
+	coll := client.Database(DB_NAME).Collection(collectionName)
+	cursor, err := coll.Find(CTX, query)
 	if err != nil {
 		return remerr.ErrInternalServerError
 	}
-
 	if err := cursor.All(CTX, dest); err != nil {
 		return remerr.ErrInternalServerError
 	}
@@ -52,34 +49,35 @@ func GetMany(collection string, dest any) error {
 }
 
 /*
-Opens connection to the database and retrieves an item that has [value] as its primary key / unique key value.
-[key] is the primary key / unique key to search for in the database
+Opens a connection to the database and retrieves a single document that matches the provided key-value pair.
 
-	{ _id: email@person.com, name: John }
-	key = _id
-	value = email@person.com
+Fetches a document based on the specified key and value and unmarshals the result into the provided destination.
 
-Usage
+Usage:
 
 	var destination mySchema
-	err := GetOne(myCollection, "_id", "email@person.com" &destination)
+	err := GetOne(myCollection, "_id", "email@person.com", &destination)
 
-returns [ErrInternalServerError] in case a connection with the database can't be established.
+@param collectionName: The name of the MongoDB collection to query.
+@param key: The key to search for in the database (e.g., "_id").
+@param value: The value of the key to match in the query.
+@param dest: A pointer to the variable where the result will be stored.
+@return error: An error object if any error occurs during the operation.
 
-returns [ErrInternalServerError] in case the retrieval operations fails.
-
-returns [ErrNoDocumentsFound] in case no item matches the value provided.
+Possible errors:
+- [ErrInternalServerError]: If a connection to the database cannot be established or if the retrieval operation fails.
+- [ErrNoDocumentsFound]: If no document matches the key-value pair.
 */
-func GetOne(collection string, key string, value string, dest any) error {
+func GetOne(collectionName string, key string, value string, dest any) error {
 	client, err := openConnection()
 	if err != nil {
 		return remerr.ErrInternalServerError
 	}
 	defer closeConnection(client)
 
-	c := client.Database(DB_NAME).Collection(collection)
+	coll := client.Database(DB_NAME).Collection(collectionName)
 
-	doc := c.FindOne(CTX, bson.D{{Key: key, Value: value}})
+	doc := coll.FindOne(CTX, bson.D{{Key: key, Value: value}})
 	err = doc.Decode(dest)
 	if err == nil {
 		return nil
@@ -91,23 +89,31 @@ func GetOne(collection string, key string, value string, dest any) error {
 }
 
 /*
-Opens connection to the database and inserts the document provided.
+Opens a connection to the database and inserts the provided document into the specified collection.
 
-returns [ErrInternalServerError] in case a connection with the database can't be established.
+Usage:
 
-returns [ErrItemAlreadyPresent] in case there is a collision with the primary key of an item in the database.
+	err := PutOne(myCollection, myDocument)
+
+@param collectionName: The name of the MongoDB collection to insert the document into.
+@param doc: The document to be inserted.
+@return error: An error object if any error occurs during the operation.
+
+Possible errors:
+- [ErrInternalServerError]: If a connection to the database cannot be established.
+- [ErrItemAlreadyPresent]: If there is a collision with the primary key of an existing item in the database.
 */
-func PutOne(collection string, doc any) error {
+func PutOne(collectionName string, doc any) error {
 	client, err := openConnection()
 	if err != nil {
 		return remerr.ErrInternalServerError
 	}
 	defer closeConnection(client)
 
-	c := client.Database(DB_NAME).Collection(collection)
+	coll := client.Database(DB_NAME).Collection(collectionName)
 
 	// this is not a correct way to do this, must be changed.
-	_, err = c.InsertOne(CTX, doc)
+	_, err = coll.InsertOne(CTX, doc)
 	if err != nil {
 		return remerr.ErrItemAlreadyPresent
 	}
@@ -115,34 +121,31 @@ func PutOne(collection string, doc any) error {
 }
 
 /*
-Opens connection to the database and deletes an item that has [value] as its primary key / unique key value.
-[key] is the primary key / unique key to search for in the database
+Opens a connection to the database and deletes a document that matches the provided key-value pair.
 
-	{ _id: email@person.com, name: Jhon }
-	key = _id
-	value = email@person.com
+Usage:
 
-	Usage
+	err := DeleteOne(myCollection, "_id", "email@person.com")
 
-	var destination mySchema
-	err := DeleteOne(myCollection, "_id", "email@person.com" &destination)
+@param collectionName: The name of the MongoDB collection to delete the document from.
+@param key: The key to search for in the database (e.g., "_id").
+@param value: The value of the key to match in the query.
+@return error: An error object if any error occurs during the operation.
 
-returns [ErrInternalServerError] in case a connection with the database can't be established.
-
-returns [ErrInternalServerError] in case the delete operations fails.
-
-returns [ErrNoDocumentsFound] in case no item matches the value provided.
+Possible errors:
+- [ErrInternalServerError]: If a connection to the database cannot be established or if the delete operation fails.
+- [ErrNoDocumentsFound]: If no document matches the key-value pair.
 */
-func DeleteOne(collection string, key string, value string) error {
+func DeleteOne(collectionName string, key string, value string) error {
 	client, err := openConnection()
 	if err != nil {
 		return remerr.ErrInternalServerError
 	}
 	defer closeConnection(client)
 
-	c := client.Database(DB_NAME).Collection(collection)
+	coll := client.Database(DB_NAME).Collection(collectionName)
 
-	delres, err := c.DeleteOne(CTX, bson.D{{Key: key, Value: value}})
+	delres, err := coll.DeleteOne(CTX, bson.D{{Key: key, Value: value}})
 	if delres.DeletedCount == 0 {
 		return remerr.ErrNoDocumentsFound
 	}
