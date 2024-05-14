@@ -128,60 +128,58 @@ func rangeFilter(k string, v string) (primitive.E, error) {
 	var filter bson.D
 	switch {
 	case strings.HasPrefix(v, RANGE):
-		filter, err := singleRange(rng[1], filter, "$lte")
+		err := singleRange(rng[1], &filter, "$lte")
 		if err != nil {
 			return primitive.E{}, err
 		}
-		return primitive.E{Key: k, Value: filter}, nil
 
 	case strings.HasSuffix(v, RANGE):
-		filter, err := singleRange(rng[0], filter, "$gte")
+		err := singleRange(rng[0], &filter, "$gte")
 		if err != nil {
 			return primitive.E{}, err
 		}
-		return primitive.E{Key: k, Value: filter}, nil
 
 	default:
-		filter, err := fullRange(rng, filter)
+		err := fullRange(rng, &filter)
 		if err != nil {
 			return primitive.E{}, err
 		}
-		return primitive.E{Key: k, Value: filter}, nil
 	}
+	return primitive.E{Key: k, Value: filter}, nil
 }
 
 /*
 Helper - processes a range that has a single value.
 The condition for the query must be specified, either "$gte" or "$lte".
 */
-func singleRange(v string, query bson.D, cond string) (bson.D, error) {
+func singleRange(v string, query *bson.D, cond string) error {
 	lte, err := strconv.Atoi(v)
 	if err != nil {
-		return query, remerr.ErrRangeValueNotNumber
+		return remerr.ErrRangeValueNotNumber
 	}
-	query = append(query, primitive.E{Key: cond, Value: lte})
-	return query, nil
+	*query = append(*query, primitive.E{Key: cond, Value: lte})
+	return nil
 }
 
 /*
 Helper - processes a range and creates a query with the correct range format.
 */
-func fullRange(v []string, query bson.D) (bson.D, error) {
+func fullRange(v []string, query *bson.D) error {
 	gte, err := strconv.Atoi(v[0])
 	if err != nil {
-		return query, remerr.ErrInternalServerError
+		return remerr.ErrInternalServerError
 	}
 
 	lte, err := strconv.Atoi(v[1])
 	if err != nil {
-		return query, remerr.ErrInternalServerError
+		return remerr.ErrInternalServerError
 	}
 
 	if gte > lte {
-		return query, remerr.ErrInvalidRangeValues
+		return remerr.ErrInvalidRangeValues
 	}
 
-	query = append(query, primitive.E{Key: "$gte", Value: gte})
-	query = append(query, primitive.E{Key: "$lte", Value: lte})
-	return query, nil
+	*query = append(*query, primitive.E{Key: "$gte", Value: gte})
+	*query = append(*query, primitive.E{Key: "$lte", Value: lte})
+	return nil
 }
