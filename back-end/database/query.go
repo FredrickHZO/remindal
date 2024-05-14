@@ -36,21 +36,24 @@ func ToMongoQuery(query url.Values) (bson.D, error) {
 		val := v[0]
 		switch {
 		case strings.Contains(val, LIST):
-			filter, err := processMultipleSelectionRequest(key, val)
+			filter, err := multiSelectFilter(key, val)
 			if err != nil {
 				return queryDoc, err
 			}
 			queryDoc = append(queryDoc, filter)
 
 		case strings.Contains(val, RANGE):
-			filter, err := processRangeInRequest(key, val)
+			filter, err := rangeFilter(key, val)
 			if err != nil {
 				return queryDoc, err
 			}
 			queryDoc = append(queryDoc, filter)
 
 		default:
-			queryDoc = append(queryDoc, primitive.E{Key: key, Value: val})
+			queryDoc = append(
+				queryDoc,
+				primitive.E{Key: key, Value: val},
+			)
 		}
 	}
 	return queryDoc, nil
@@ -73,7 +76,7 @@ Handles a multiple selection in the HTTP request. A multiple selection takes the
 
 Splits the string containing the values and creates the appropriate query using the "$or" operator.
 */
-func processMultipleSelectionRequest(k string, v string) (primitive.E, error) {
+func multiSelectFilter(k string, v string) (primitive.E, error) {
 	if !contains(multipleSelectionKeys, k) {
 		return primitive.E{}, remerr.ErrNotMultipleSelection
 	}
@@ -94,9 +97,9 @@ to have certain types of values (e.g., multiple selection or range values).
 By ensuring the key is within the predefined allowed keys, it helps maintain
 the integrity of the query formation process.
 */
-func contains(allowedKeys []string, key string) bool {
+func contains(allowedKeys []string, k string) bool {
 	for _, item := range allowedKeys {
-		if item == key {
+		if item == k {
 			return true
 		}
 	}
@@ -112,72 +115,73 @@ Splits the string containing the range and creates the appropriate query.
 If only one value is present in the range, the resulting query will include all values
 greater than or equal to (or less than or equal to) the specified value.
 */
-func processRangeInRequest(k string, v string) (primitive.E, error) {
+func rangeFilter(k string, v string) (primitive.E, error) {
 	if !contains(rangeKeys, k) {
 		return primitive.E{}, remerr.ErrNotRangeable
 	}
 
-	str := strings.Split(v, RANGE)
-	if len(str) > 2 {
-		return primitive.E{}, remerr.ErrInternalServerError
+	rng := strings.Split(v, RANGE)
+	if len(rng) > 2 {
+		return primitive.E{}, remerr.ErrInvalidRangeValues
 	}
 
-	var query bson.D
-	if strings.HasPrefix(v, RANGE) {
-		query, err := singleValRange(str[1], query, "$lte")
+	var filter bson.D
+	switch {
+	case strings.HasPrefix(v, RANGE):
+		filter, err := singleRange(rng[1], filter, "$lte")
 		if err != nil {
 			return primitive.E{}, err
 		}
-		return primitive.E{Key: k, Value: query}, nil
-	}
+		return primitive.E{Key: k, Value: filter}, nil
 
-	if strings.HasSuffix(v, RANGE) {
-		query, err := singleValRange(str[0], query, "$gte")
+	case strings.HasSuffix(v, RANGE):
+		filter, err := singleRange(rng[0], filter, "$gte")
 		if err != nil {
 			return primitive.E{}, err
 		}
-		return primitive.E{Key: k, Value: query}, nil
-	}
+		return primitive.E{Key: k, Value: filter}, nil
 
-	query, err := fullValRange(str, query)
-	if err != nil {
-		return primitive.E{}, err
+	default:
+		filter, err := fullRange(rng, filter)
+		if err != nil {
+			return primitive.E{}, err
+		}
+		return primitive.E{Key: k, Value: filter}, nil
 	}
-	return primitive.E{Key: k, Value: query}, nil
 }
 
 /*
-Processes a range that has a single value.
+Helper - processes a range that has a single value.
 The condition for the query must be specified, either "$gte" or "$lte".
 */
-func singleValRange(v string, cond bson.D, logg string) (bson.D, error) {
+func singleRange(v string, query bson.D, cond string) (bson.D, error) {
 	lte, err := strconv.Atoi(v)
 	if err != nil {
-		return cond, remerr.ErrRangeValueNotNumber
+		return query, remerr.ErrRangeValueNotNumber
 	}
-	cond = append(cond, primitive.E{Key: logg, Value: lte})
-	return cond, nil
+	query = append(query, primitive.E{Key: cond, Value: lte})
+	return query, nil
 }
 
 /*
-Processes a range and creates a query with the correct range format.
+Helper - processes a range and creates a query with the correct range format.
 */
-func fullValRange(v []string, cond bson.D) (bson.D, error) {
+func fullRange(v []string, query bson.D) (bson.D, error) {
 	gte, err := strconv.Atoi(v[0])
 	if err != nil {
-		return cond, remerr.ErrInternalServerError
+		return query, remerr.ErrInternalServerError
 	}
 
 	lte, err := strconv.Atoi(v[1])
 	if err != nil {
-		return cond, remerr.ErrInternalServerError
+		return query, remerr.ErrInternalServerError
 	}
 
 	if gte > lte {
-		return cond, remerr.ErrInvalidRangeValues
+		return query, remerr.ErrInvalidRangeValues
 	}
 
-	cond = append(cond, primitive.E{Key: "$gte", Value: gte})
-	cond = append(cond, primitive.E{Key: "$lte", Value: lte})
-	return cond, nil
+	query = append(query, primitive.E{Key: "$gte", Value: gte})
+	query = append(query, primitive.E{Key: "$lte", Value: lte})
+	return query, nil
 }
