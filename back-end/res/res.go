@@ -6,22 +6,22 @@ import (
 	"net/http"
 )
 
-type BaseAPI struct {
+type ResponseAPI struct {
 	Ok      bool   `json:"ok"`
 	Message string `json:"message,omitempty"`
-}
-
-type ResponseAPI struct {
-	Base BaseAPI
-	Res  any `json:"res,omitempty"`
+	Res     any    `json:"res,omitempty"`
 }
 
 /*
-Sends to the client an error response with a description
-and writes the header with the specified HTTP error status
+Sends an error response to the client with a description
+and writes the header with the specified HTTP error status.
+
+@param w: The HTTP response writer
+@param err: The error to be described in the response
+@param status: The HTTP status code to be sent
 */
 func Err(w http.ResponseWriter, err error, status int) {
-	res := BaseAPI{Ok: false, Message: err.Error()}
+	res := ResponseAPI{Ok: false, Message: err.Error()}
 
 	json, err := json.Marshal(res)
 	if err != nil {
@@ -37,16 +37,14 @@ func Err(w http.ResponseWriter, err error, status int) {
 }
 
 /*
-Sends the client a successful response and writes data - if any - as
-part of the HTTP response in the body.
+Sends a successful response to the client and writes data
+- if any - as part of the HTTP response body.
 
-Automatically sets the HTTP status to 200.
+@param w: The HTTP response writer
+@param item: The data to be included in the response body
 */
 func Ok(w http.ResponseWriter, item any) {
-	res := ResponseAPI{
-		Base: BaseAPI{Ok: true},
-		Res:  item,
-	}
+	res := ResponseAPI{Ok: true, Res: item}
 
 	json, err := json.Marshal(res)
 	if err != nil {
