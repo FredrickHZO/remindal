@@ -6,6 +6,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
@@ -24,15 +25,16 @@ Usage:
 [ErrInternalServerError]: If a connection to the database cannot be established or if the retrieval operation fails.
 [ErrNoDocumentsFound]: If no documents match the query.
 */
-func GetMany(collectionName string, query bson.D, dest any) error {
+func GetMany(collectionName string, query bson.D, sort bson.D, dest any) error {
 	client, err := openConnection()
 	if err != nil {
 		return remerr.ErrInternalServerError
 	}
 	defer closeConnection(client)
 
+	opts := options.Find().SetSort(sort)
 	coll := client.Database(DB_NAME).Collection(collectionName)
-	cursor, err := coll.Find(CTX, query)
+	cursor, err := coll.Find(CTX, query, opts)
 	if err != nil {
 		return remerr.ErrInternalServerError
 	}
@@ -62,7 +64,6 @@ func GetOne(collectionName string, key string, value string, dest any) error {
 	defer closeConnection(client)
 
 	coll := client.Database(DB_NAME).Collection(collectionName)
-
 	doc := coll.FindOne(CTX, bson.D{{Key: key, Value: value}})
 	err = doc.Decode(dest)
 	if err == nil {
@@ -88,7 +89,6 @@ func PutOne(collectionName string, doc any) error {
 	defer closeConnection(client)
 
 	coll := client.Database(DB_NAME).Collection(collectionName)
-
 	// this is not a correct way to do this, must be changed.
 	_, err = coll.InsertOne(CTX, doc)
 	if err != nil {
@@ -111,7 +111,6 @@ func DeleteOne(collectionName string, key string, value string) error {
 	defer closeConnection(client)
 
 	coll := client.Database(DB_NAME).Collection(collectionName)
-
 	delres, err := coll.DeleteOne(CTX, bson.D{{Key: key, Value: value}})
 	if delres.DeletedCount == 0 {
 		return remerr.ErrNoDocumentsFound
