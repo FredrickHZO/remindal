@@ -8,6 +8,8 @@ import (
 	db "remindal/database"
 	remerr "remindal/errors"
 	"remindal/res"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 var (
@@ -26,16 +28,15 @@ and writes the result as a JSON response. If an error occurs, it responds with t
 func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
 	query, err := db.ToMongoQuery(r.URL.Query())
 	if err != nil {
-		status := statusError(err)
-		res.Err(w, err, status)
+		res.Err(w, err)
 		return
 	}
 
 	var retrievedUserList []db.UserSchema
-	err = db.GetMany(db.USER_COLLECTION, query, &retrievedUserList)
-
+	sort := bson.D{{Key: "age", Value: 1}}
+	err = db.GetMany(db.USER_COLLECTION, query, sort, &retrievedUserList)
 	if err != nil {
-		res.Err(w, err, http.StatusInternalServerError)
+		res.Err(w, err)
 		return
 	}
 	res.Ok(w, retrievedUserList)
@@ -50,7 +51,7 @@ and writes the result as a JSON response. If an error occurs, it responds with t
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := r.URL.Query().Get(EMAIL_KEY_JSON)
 	if userEmail == "" {
-		res.Err(w, remerr.ErrNoEmailProvided, http.StatusBadRequest)
+		res.Err(w, remerr.ErrNoEmailProvided)
 		return
 	}
 
@@ -62,8 +63,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		&retrievedUser,
 	)
 	if err != nil {
-		status := statusError(err)
-		res.Err(w, err, status)
+		res.Err(w, err)
 		return
 	}
 	res.Ok(w, retrievedUser)
@@ -78,20 +78,19 @@ If an error occurs, it responds with the appropriate error message and status co
 func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := decodeRequestBody(r.Body)
 	if err != nil {
-		status := statusError(err)
-		res.Err(w, err, status)
+		res.Err(w, err)
 		return
 	}
 
 	var newuser db.UserSchema
 	if err := json.Unmarshal(body, &newuser); err != nil {
 		log.Println("PutUserHandle - json.Unmarshal ", err)
-		res.Err(w, remerr.ErrInternalServerError, http.StatusInternalServerError)
+		res.Err(w, remerr.ErrInternalServerError)
 		return
 	}
 
 	if err := db.PutOne(db.USER_COLLECTION, newuser); err != nil {
-		res.Err(w, err, http.StatusBadRequest)
+		res.Err(w, err)
 		return
 	}
 	res.Ok(w, nil)
@@ -106,14 +105,13 @@ If an error occurs, it responds with the appropriate error message and status co
 func DelUserHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := r.URL.Query().Get(EMAIL_KEY_JSON)
 	if userEmail == "" {
-		res.Err(w, remerr.ErrNoEmailProvided, http.StatusBadRequest)
+		res.Err(w, remerr.ErrNoEmailProvided)
 		return
 	}
 
 	err := db.DeleteOne(db.USER_COLLECTION, EMAIL_KEY_DB, userEmail)
 	if err != nil {
-		status := statusError(err)
-		res.Err(w, err, status)
+		res.Err(w, err)
 		return
 	}
 	res.Ok(w, nil)
