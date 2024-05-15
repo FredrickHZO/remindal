@@ -3,7 +3,6 @@ package routes
 import (
 	"io"
 	"log"
-	"net/http"
 	remerr "remindal/errors"
 )
 
@@ -24,17 +23,4 @@ func decodeRequestBody(b io.Reader) ([]byte, error) {
 		return nil, remerr.ErrNoBodyProvided
 	}
 	return body, nil
-}
-
-/*
-Returns the appropriate HTTP status code based on the given error.
-*/
-func statusError(err error) int {
-	var status int
-	if err == remerr.ErrInternalServerError {
-		status = http.StatusInternalServerError
-	} else {
-		status = http.StatusBadRequest
-	}
-	return status
 }
