@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	remerr "remindal/errors"
 )
 
 type ResponseAPI struct {
@@ -14,9 +15,10 @@ type ResponseAPI struct {
 
 /*
 Sends an error response to the client with a description
-and writes the header with the specified HTTP error status.
+and automatically detects the appropriate HTTP error status,
+writing it to the header.
 */
-func Err(w http.ResponseWriter, err error, status int) {
+func Err(w http.ResponseWriter, err error) {
 	res := ResponseAPI{Ok: false, Message: err.Error()}
 
 	json, err := json.Marshal(res)
@@ -25,11 +27,25 @@ func Err(w http.ResponseWriter, err error, status int) {
 		return
 	}
 
+	status := statusError(err)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if _, err = w.Write(json); err != nil {
 		log.Println("res.Err - w.Write ", err)
 	}
+}
+
+/*
+Returns the appropriate HTTP status code based on the given error.
+*/
+func statusError(err error) int {
+	var status int
+	if err == remerr.ErrInternalServerError {
+		status = http.StatusInternalServerError
+	} else {
+		status = http.StatusBadRequest
+	}
+	return status
 }
 
 /*
