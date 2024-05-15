@@ -30,7 +30,7 @@ Iterates over the query parameters, identifies the type of filter (range, list, 
 and constructs a corresponding BSON filter.
 */
 func ToMongoQuery(query url.Values) (bson.D, error) {
-	var queryDoc bson.D
+	queryDoc := bson.D{}
 	for k, v := range query {
 		key := getBsonDatabaseKey(k)
 		val := v[0]
