@@ -1,8 +1,8 @@
-package database
+package main
 
-type UserSchema struct {
+type User struct {
 	Email    string `bson:"_id" json:"email"`
-	Password string `bson:"password"`
+	Password string `bson:"password" validate:"required,password"`
 	Name     string `bson:"name,omitempty"`
 	Surname  string `bson:"surname,omitempty"`
 	Age      uint8  `bson:"age,omitempty"`
@@ -17,7 +17,7 @@ type Date struct {
 	Day   string `bson:"day"`
 }
 
-type CalendarSchema struct {
+type Calendar struct {
 	Alias string `bson:"alias"`
 	Dates []Date `bson:"dates"`
 }

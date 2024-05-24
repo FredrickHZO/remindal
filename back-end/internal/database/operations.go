@@ -2,15 +2,10 @@ package database
 
 import (
 	"context"
-	remerr "remindal/errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-)
-
-var (
-	CTX = context.Background()
 )
 
 /*
@@ -28,18 +23,18 @@ Usage:
 func GetMany(collectionName string, query bson.D, sort bson.D, dest any) error {
 	client, err := openConnection()
 	if err != nil {
-		return remerr.ErrInternalServerError
+		return err
 	}
 	defer closeConnection(client)
 
 	opts := options.Find().SetSort(sort)
 	coll := client.Database(DB_NAME).Collection(collectionName)
-	cursor, err := coll.Find(CTX, query, opts)
+	cursor, err := coll.Find(context.TODO(), query, opts)
 	if err != nil {
-		return remerr.ErrInternalServerError
+		return err
 	}
-	if err := cursor.All(CTX, dest); err != nil {
-		return remerr.ErrInternalServerError
+	if err := cursor.All(context.TODO(), dest); err != nil {
+		return err
 	}
 	return nil
 }
@@ -59,20 +54,17 @@ Usage:
 func GetOne(collectionName string, key string, value string, dest any) error {
 	client, err := openConnection()
 	if err != nil {
-		return remerr.ErrInternalServerError
+		return err
 	}
 	defer closeConnection(client)
 
 	coll := client.Database(DB_NAME).Collection(collectionName)
-	doc := coll.FindOne(CTX, bson.D{{Key: key, Value: value}})
+	doc := coll.FindOne(context.TODO(), bson.D{{Key: key, Value: value}})
 	err = doc.Decode(dest)
-	if err == nil {
+	if err == nil || err == mongo.ErrNoDocuments {
 		return nil
 	}
-	if err == mongo.ErrNoDocuments {
-		return remerr.ErrNoDocumentsFound
-	}
-	return remerr.ErrInternalServerError
+	return err
 }
 
 /*
@@ -84,15 +76,14 @@ Opens a connection to the database and inserts the provided document into the sp
 func PutOne(collectionName string, doc any) error {
 	client, err := openConnection()
 	if err != nil {
-		return remerr.ErrInternalServerError
+		return err
 	}
 	defer closeConnection(client)
 
 	coll := client.Database(DB_NAME).Collection(collectionName)
-	// this is not a correct way to do this, must be changed.
-	_, err = coll.InsertOne(CTX, doc)
+	_, err = coll.InsertOne(context.TODO(), doc)
 	if err != nil {
-		return remerr.ErrItemAlreadyPresent
+		return err
 	}
 	return nil
 }
@@ -106,17 +97,14 @@ Opens a connection to the database and deletes a document that matches the provi
 func DeleteOne(collectionName string, key string, value string) error {
 	client, err := openConnection()
 	if err != nil {
-		return remerr.ErrInternalServerError
+		return err
 	}
 	defer closeConnection(client)
 
 	coll := client.Database(DB_NAME).Collection(collectionName)
-	delres, err := coll.DeleteOne(CTX, bson.D{{Key: key, Value: value}})
-	if delres.DeletedCount == 0 {
-		return remerr.ErrNoDocumentsFound
-	}
+	_, err = coll.DeleteOne(context.TODO(), bson.D{{Key: key, Value: value}})
 	if err != nil {
-		return remerr.ErrInternalServerError
+		return err
 	}
 	return nil
 }

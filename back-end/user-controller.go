@@ -1,22 +1,21 @@
-package routes
+package main
 
 import (
-	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
-	db "remindal/database"
-	remerr "remindal/errors"
-	"remindal/res"
+	db "remindal/internal/database"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 var (
-	CTX = context.Background()
-
 	EMAIL_KEY_DB   = "_id"
 	EMAIL_KEY_JSON = "email"
+
+	errNoEmailProvided = errors.New("no email provided")
+	errInvalidUserInfo = errors.New("invalid or missing user info")
 )
 
 /*
@@ -26,20 +25,18 @@ It converts the query parameters to a MongoDB query, retrieves the matching user
 and writes the result as a JSON response. If an error occurs, it responds with the appropriate error message and status code.
 */
 func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
-	query, err := db.ToMongoQuery(r.URL.Query())
-	if err != nil {
-		res.Err(w, err)
-		return
-	}
+	//query := r.URL.Query()
 
-	var retrievedUserList []db.UserSchema
+	var retrievedUserList []User
 	sort := bson.D{{Key: "age", Value: 1}}
-	err = db.GetMany(db.USER_COLLECTION, query, sort, &retrievedUserList)
+	query := bson.D{{}}
+
+	err := db.GetMany(db.USER_COLLECTION, query, sort, &retrievedUserList)
 	if err != nil {
-		res.Err(w, err)
+		Eres(w, Err500(err))
 		return
 	}
-	res.Ok(w, retrievedUserList)
+	Okres(w, retrievedUserList)
 }
 
 /*
@@ -51,11 +48,10 @@ and writes the result as a JSON response. If an error occurs, it responds with t
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := r.URL.Query().Get(EMAIL_KEY_JSON)
 	if userEmail == "" {
-		res.Err(w, remerr.ErrNoEmailProvided)
-		return
+		Eres(w, Err400(errNoEmailProvided))
 	}
 
-	var retrievedUser db.UserSchema
+	var retrievedUser User
 	err := db.GetOne(
 		db.USER_COLLECTION,
 		EMAIL_KEY_DB,
@@ -63,10 +59,10 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		&retrievedUser,
 	)
 	if err != nil {
-		res.Err(w, err)
+		Eres(w, Err400(err))
 		return
 	}
-	res.Ok(w, retrievedUser)
+	Okres(w, retrievedUser)
 }
 
 /*
@@ -78,22 +74,22 @@ If an error occurs, it responds with the appropriate error message and status co
 func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := decodeRequestBody(r.Body)
 	if err != nil {
-		res.Err(w, err)
+		Eres(w, Err500(err))
 		return
 	}
 
-	var newuser db.UserSchema
+	var newuser User
 	if err := json.Unmarshal(body, &newuser); err != nil {
 		log.Println("PutUserHandle - json.Unmarshal ", err)
-		res.Err(w, remerr.ErrInternalServerError)
+		Eres(w, Err500(err))
 		return
 	}
 
 	if err := db.PutOne(db.USER_COLLECTION, newuser); err != nil {
-		res.Err(w, err)
+		Eres(w, Err400(err))
 		return
 	}
-	res.Ok(w, nil)
+	Okres(w, nil)
 }
 
 /*
@@ -105,14 +101,14 @@ If an error occurs, it responds with the appropriate error message and status co
 func DelUserHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := r.URL.Query().Get(EMAIL_KEY_JSON)
 	if userEmail == "" {
-		res.Err(w, remerr.ErrNoEmailProvided)
+		Eres(w, Err400(errNoEmailProvided))
 		return
 	}
 
 	err := db.DeleteOne(db.USER_COLLECTION, EMAIL_KEY_DB, userEmail)
 	if err != nil {
-		res.Err(w, err)
+		Eres(w, Err400(err))
 		return
 	}
-	res.Ok(w, nil)
+	Okres(w, nil)
 }

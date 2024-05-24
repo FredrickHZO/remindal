@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"log"
-	remerr "remindal/errors"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -41,7 +40,7 @@ func openConnection() (*mongo.Client, error) {
 	client, err := mongo.Connect(context.Background(), opts)
 	if err != nil {
 		log.Println("database.OpenConnection - mongo.Connect ", err)
-		return nil, remerr.ErrInternalServerError
+		return nil, err
 	}
 	return client, nil
 }

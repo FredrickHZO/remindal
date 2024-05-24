@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"remindal/routes"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -17,10 +16,10 @@ var (
 )
 
 func handleTestRoutes() {
-	router.HandleFunc("/user", routes.GetUserHandler).Methods("GET")
-	router.HandleFunc("/user", routes.PutUserHandler).Methods("POST")
-	router.HandleFunc("/user", routes.DelUserHandler).Methods("DELETE")
-	router.HandleFunc("/user/list", routes.GetUsersListHandler).Methods("GET")
+	router.HandleFunc("/user", GetUserHandler).Methods("GET")
+	router.HandleFunc("/user", PutUserHandler).Methods("POST")
+	router.HandleFunc("/user", DelUserHandler).Methods("DELETE")
+	router.HandleFunc("/user/list", GetUsersListHandler).Methods("GET")
 }
 
 func main() {
