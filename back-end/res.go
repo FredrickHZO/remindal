@@ -51,13 +51,3 @@ func Okres(w http.ResponseWriter, item any) {
 		log.Println("res.Ok - w.Write ", err)
 	}
 }
-
-func Test() {
-	var jsn []byte
-
-	var res ResponseAPI
-	err := json.Unmarshal(jsn, &res)
-	if err != nil {
-		log.Println("ha sciut")
-	}
-}
