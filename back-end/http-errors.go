@@ -9,8 +9,8 @@ type HttpError struct {
 	status int
 }
 
-func (se *HttpError) Error() string {
-	return fmt.Sprintf("%d: %s", se.status, se.err)
+func (he *HttpError) Error() string {
+	return fmt.Sprintf("%d: %s", he.status, he.err)
 }
 
 func Err400(err error) *HttpError {
