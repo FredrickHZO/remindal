@@ -7,6 +7,7 @@ import (
 	"net/http"
 	db "remindal/internal/database"
 
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -49,15 +50,12 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := r.URL.Query().Get(EMAIL_KEY_JSON)
 	if userEmail == "" {
 		Eres(w, Err400(errNoEmailProvided))
+		return
 	}
 
 	var retrievedUser User
-	err := db.GetOne(
-		db.USER_COLLECTION,
-		EMAIL_KEY_DB,
-		userEmail,
-		&retrievedUser,
-	)
+	err := db.GetOne(db.USER_COLLECTION, EMAIL_KEY_DB,
+		userEmail, &retrievedUser)
 	if err != nil {
 		Eres(w, Err400(err))
 		return
@@ -72,9 +70,9 @@ It reads the request body, unmarshals the JSON into a UserSchema, and inserts th
 If an error occurs, it responds with the appropriate error message and status code.
 */
 func PutUserHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := decodeRequestBody(r.Body)
-	if err != nil {
-		Eres(w, Err500(err))
+	body, herr := decodeRequestBody(r.Body)
+	if herr != nil {
+		Eres(w, Err500(herr))
 		return
 	}
 
@@ -85,8 +83,14 @@ func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	validate := validator.New()
+	err := validate.Struct(newuser)
+	if err != nil {
+		Eres(w, Err400(errInvalidUserInfo))
+		return
+	}
 	if err := db.PutOne(db.USER_COLLECTION, newuser); err != nil {
-		Eres(w, Err400(err))
+		Eres(w, Err500(err))
 		return
 	}
 	Okres(w, nil)
