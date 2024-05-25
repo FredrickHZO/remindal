@@ -15,10 +15,10 @@ var (
 	port   string
 )
 
-func handleTestRoutes() {
-	router.HandleFunc("/user", GetUserHandler).Methods("GET")
-	router.HandleFunc("/user", PutUserHandler).Methods("POST")
-	router.HandleFunc("/user", DelUserHandler).Methods("DELETE")
+func handleUserRoutes() {
+	router.HandleFunc("/user/", GetUserHandler).Methods("GET")
+	router.HandleFunc("/user/post", PutUserHandler).Methods("POST")
+	router.HandleFunc("/user/del", DelUserHandler).Methods("DELETE")
 	router.HandleFunc("/user/list", GetUsersListHandler).Methods("GET")
 }
 
@@ -26,7 +26,7 @@ func main() {
 	flag.StringVar(&port, "port", ":8080", "The port the server will use to listen to requests")
 	flag.Parse()
 
-	handleTestRoutes()
+	handleUserRoutes()
 
 	handler := cors.Default().Handler(router)
 	log.Print("server will be listening on port ", port)
