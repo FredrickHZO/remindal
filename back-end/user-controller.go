@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"net/http"
 	db "remindal/internal/database"
@@ -70,9 +71,10 @@ It reads the request body, unmarshals the JSON into a UserSchema, and inserts th
 If an error occurs, it responds with the appropriate error message and status code.
 */
 func PutUserHandler(w http.ResponseWriter, r *http.Request) {
-	body, herr := decodeRequestBody(r.Body)
-	if herr != nil {
-		Eres(w, Err500(herr))
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println("decodeRequestBody - io.ReadAll ", err)
+		Eres(w, Err500(err))
 		return
 	}
 
@@ -84,7 +86,7 @@ func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	validate := validator.New()
-	err := validate.Struct(newuser)
+	err = validate.Struct(newuser)
 	if err != nil {
 		Eres(w, Err400(errInvalidUserInfo))
 		return
