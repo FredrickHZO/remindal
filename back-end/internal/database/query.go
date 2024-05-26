@@ -44,7 +44,7 @@ func (qb *QueryBuilder) AddRangeField(k string, v string, min bool) {
 	}
 	r := bson.E{
 		Key:   k,
-		Value: bson.D{bson.E{Key: cond, Value: v}},
+		Value: bson.D{{Key: cond, Value: v}},
 	}
 	qb.query = append(qb.query, r)
 }
@@ -58,7 +58,6 @@ func (qb *QueryBuilder) AddFieldC(k string, v string, cnv func(s string) (any, e
 		return
 	}
 	qb.query = append(qb.query, bson.E{Key: k, Value: val})
-
 }
 
 // Converts the values and adds a multi select filter to the query document
@@ -94,7 +93,7 @@ func (qb *QueryBuilder) AddRangeFieldC(k string, v string, min bool, cnv func(s 
 	}
 	r := bson.E{
 		Key:   k,
-		Value: bson.D{bson.E{Key: cond, Value: val}},
+		Value: bson.D{{Key: cond, Value: val}},
 	}
 	qb.query = append(qb.query, r)
 }
