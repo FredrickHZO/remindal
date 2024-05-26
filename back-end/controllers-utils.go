@@ -11,7 +11,7 @@ var (
 )
 
 // Checks if all the possible User filters are inside the HTTP URL query
-func constructUserQuery(q url.Values, qb *db.QueryBuilder) {
+func buildUserQuery(q url.Values, qb *db.QueryBuilder) {
 	email := q.Get("_id")
 	if email != "" {
 		qb.AddField("_id", email)

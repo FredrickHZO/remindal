@@ -27,7 +27,7 @@ func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
 		qbuilder = db.NewQueryBuilder()
 		query    = r.URL.Query()
 	)
-	constructUserQuery(query, &qbuilder)
+	buildUserQuery(query, &qbuilder)
 	err := qbuilder.Err()
 	if err != nil {
 		Eres(w, Err400(err))
