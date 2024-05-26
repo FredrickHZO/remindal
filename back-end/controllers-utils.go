@@ -10,37 +10,41 @@ var (
 	MULTI_SEL_SEPARATOR = ","
 )
 
+func exists(s string) bool {
+	return s != ""
+}
+
 // Checks if all the possible User filters are inside the HTTP URL query
 func buildUserQuery(q url.Values, qb *db.QueryBuilder) {
 	email := q.Get("_id")
-	if email != "" {
+	if exists(email) {
 		qb.AddField("_id", email)
 	}
 	password := q.Get("password")
-	if password != "" {
+	if exists(password) {
 		qb.AddField("password", password)
 	}
 	names := q.Get("name")
-	if names != "" {
+	if exists(names) {
 		qb.AddMultiSelectField("name", names, MULTI_SEL_SEPARATOR)
 	}
 	surnames := q.Get("surname")
-	if surnames != "" {
+	if exists(surnames) {
 		qb.AddMultiSelectField("surname", surnames, MULTI_SEL_SEPARATOR)
 	}
 	minAge := q.Get("minage")
-	if minAge != "" {
+	if exists(minAge) {
 		qb.AddRangeFieldC("age", minAge, true, func(s string) (any, error) {
 			return strconv.Atoi(s)
 		})
 	}
 	maxAge := q.Get("maxage")
-	if maxAge != "" {
+	if exists(maxAge) {
 		qb.AddRangeFieldC("age", maxAge, false, func(s string) (any, error) {
 			return strconv.Atoi(s)
 		})
 	}
-	if minAge == "" && maxAge == "" {
+	if !exists(minAge) && !exists(maxAge) {
 		age := q.Get("age")
 		if age != "" {
 			qb.AddFieldC("age", age, func(s string) (any, error) {
