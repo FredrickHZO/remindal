@@ -46,7 +46,7 @@ func buildUserQuery(q url.Values, qb *db.QueryBuilder) {
 	}
 	if !exists(minAge) && !exists(maxAge) {
 		age := q.Get("age")
-		if age != "" {
+		if exists(age) {
 			qb.AddFieldC("age", age, func(s string) (any, error) {
 				return strconv.Atoi(s)
 			})
