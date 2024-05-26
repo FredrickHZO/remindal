@@ -10,8 +10,14 @@ var (
 	MULTI_SEL_SEPARATOR = ","
 )
 
+// Checks if a param is not an empty string. e.g. if it exists
 func exists(s string) bool {
 	return s != ""
+}
+
+// Wrapper to string conversion to integer
+func paramToi(s string) (any, error) {
+	return strconv.Atoi(s)
 }
 
 // Checks if all the possible User filters are inside the HTTP URL query
@@ -34,22 +40,16 @@ func buildUserQuery(q url.Values, qb *db.QueryBuilder) {
 	}
 	minAge := q.Get("minage")
 	if exists(minAge) {
-		qb.AddRangeFieldC("age", minAge, true, func(s string) (any, error) {
-			return strconv.Atoi(s)
-		})
+		qb.AddRangeFieldC("age", minAge, true, paramToi)
 	}
 	maxAge := q.Get("maxage")
 	if exists(maxAge) {
-		qb.AddRangeFieldC("age", maxAge, false, func(s string) (any, error) {
-			return strconv.Atoi(s)
-		})
+		qb.AddRangeFieldC("age", maxAge, false, paramToi)
 	}
 	if !exists(minAge) && !exists(maxAge) {
 		age := q.Get("age")
 		if exists(age) {
-			qb.AddFieldC("age", age, func(s string) (any, error) {
-				return strconv.Atoi(s)
-			})
+			qb.AddFieldC("age", age, paramToi)
 		}
 	}
 }
