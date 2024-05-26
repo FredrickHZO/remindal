@@ -45,7 +45,7 @@ func (qb *QueryBuilder) AddRangeField(k string, v string, c string) {
 
 // Converts the value and adds a simple field filter to the query document
 // Adds an error to the QueryBuilder if the convertion is unsuccessfull
-func (qb *QueryBuilder) AddFeildC(k string, v string, cnv func(s string) (any, error)) {
+func (qb *QueryBuilder) AddFieldC(k string, v string, cnv func(s string) (any, error)) {
 	val, err := cnv(v)
 	if err != nil {
 		qb.err = errors.Join(err)

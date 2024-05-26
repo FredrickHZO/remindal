@@ -42,7 +42,7 @@ func constructUserQuery(q url.Values, qb *db.QueryBuilder) {
 	}
 	age := q.Get("age")
 	if age != "" {
-		qb.AddFeildC("age", age, func(s string) (any, error) {
+		qb.AddFieldC("age", age, func(s string) (any, error) {
 			return strconv.Atoi(s)
 		})
 	}
