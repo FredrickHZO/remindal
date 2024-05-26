@@ -14,7 +14,7 @@ var (
 // If one or both range values are present, prevents the single value to be
 // added as a query filter.
 func addSingleFieldIfNoRangePresent(min, max, single string, qb *db.QueryBuilder) {
-	if min != "" && max != "" {
+	if min != "" || max != "" {
 		return
 	}
 	if single != "" {
