@@ -38,6 +38,7 @@ func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
 	sort := db.CreateSort("age", 1)
 	err = db.GetMany(db.USER_COLLECTION, qbuilder.Query(), sort, &retrievedUserList)
 	if err != nil {
+		log.Println("GetUserListHandler - db.GetMany ", err)
 		Eres(w, Err500(err))
 		return
 	}
@@ -71,14 +72,14 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Println("decodeRequestBody - io.ReadAll ", err)
+		log.Println("PutUserHandler - io.ReadAll ", err)
 		Eres(w, Err500(err))
 		return
 	}
 
 	var newuser User
 	if err := json.Unmarshal(body, &newuser); err != nil {
-		log.Println("PutUserHandle - json.Unmarshal ", err)
+		log.Println("PutUserHandler - json.Unmarshal ", err)
 		Eres(w, Err500(err))
 		return
 	}
@@ -91,6 +92,7 @@ func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := db.PutOne(db.USER_COLLECTION, newuser); err != nil {
+		log.Println("PutUserHandler - db.PutOne ", err)
 		Eres(w, Err500(err))
 		return
 	}
