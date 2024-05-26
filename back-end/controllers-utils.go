@@ -10,6 +10,20 @@ var (
 	MULTI_SEL_SEPARATOR = ","
 )
 
+// Checks if there are range values in the HTTP URL query for the specified key.
+// If one or both range values are present, prevents the single value to be
+// added as a query filter.
+func addSingleFieldIfNoRangePresent(min, max, single string, qb *db.QueryBuilder) {
+	if min != "" && max != "" {
+		return
+	}
+	if single != "" {
+		qb.AddFieldC("age", single, func(s string) (any, error) {
+			return strconv.Atoi(s)
+		})
+	}
+}
+
 // Checks if all the possible User filters are inside the HTTP URL query
 func constructUserQuery(q url.Values, qb *db.QueryBuilder) {
 	email := q.Get("_id")
@@ -41,9 +55,5 @@ func constructUserQuery(q url.Values, qb *db.QueryBuilder) {
 		})
 	}
 	age := q.Get("age")
-	if age != "" {
-		qb.AddFieldC("age", age, func(s string) (any, error) {
-			return strconv.Atoi(s)
-		})
-	}
+	addSingleFieldIfNoRangePresent(minAge, maxAge, age, qb)
 }
