@@ -12,11 +12,9 @@ type ResponseAPI struct {
 	Res     any    `json:"res,omitempty"`
 }
 
-/*
-Sends an error response to the client with a description
-and automatically detects the appropriate HTTP error status,
-writing it to the header.
-*/
+// Sends an error response to the client with a description
+// and automatically detects the appropriate HTTP error status,
+// writing it to the header.
 func Eres(w http.ResponseWriter, se *HttpError) {
 	res := ResponseAPI{Ok: false, Message: se.Error()}
 
@@ -33,10 +31,8 @@ func Eres(w http.ResponseWriter, se *HttpError) {
 	}
 }
 
-/*
-Sends a successful response to the client and writes data
-- if any - as part of the HTTP response body.
-*/
+// Sends a successful response to the client and writes data
+// as part of the HTTP response body.
 func Okres(w http.ResponseWriter, item any) {
 	res := ResponseAPI{Ok: true, Res: item}
 

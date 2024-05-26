@@ -20,8 +20,9 @@ var (
 
 // Handles requests to retrieve a list of users based on query parameters.
 //
-// Converts the query parameters to a MongoDB query, retrieves the matching users from the database
-// and writes the result as a JSON response. If an error occurs, it responds with the appropriate error message and status code.
+// Converts the query parameters to a MongoDB query, retrieves the matching
+// users from the database and writes the result as a JSON response.
+// If an error occurs, it responds with the appropriate error message and status code.
 func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		qbuilder = db.NewQueryBuilder()
@@ -48,7 +49,8 @@ func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
 // GetUserHandler handles requests to retrieve a single user based on their email.
 //
 // Retrieves the email from the query parameters, fetches the user from the database
-// and writes the result as a JSON response. If an error occurs, it responds with the appropriate error message and status code.
+// and writes the result as a JSON response. If an error occurs, it responds with
+// the appropriate error message and status code.
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := r.URL.Query().Get(EMAIL_KEY)
 	if userEmail == "" {
@@ -67,8 +69,9 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handles requests to add a new user to the database.
 //
-// Reads the request body, unmarshals the JSON into a UserSchema, and inserts the user into the database.
-// If an error occurs, it responds with the appropriate error message and status code.
+// Reads the request body, unmarshals the JSON into a User, and inserts the user
+// into the database. If an error occurs, it responds with the appropriate error
+// message and status code.
 func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {

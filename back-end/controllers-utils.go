@@ -10,7 +10,7 @@ var (
 	MULTI_SEL_SEPARATOR = ","
 )
 
-// Checks if a param is not an empty string. e.g. if it exists
+// Checks if a param is not an empty string. I.E. if it exists
 func exists(s string) bool {
 	return s != ""
 }
@@ -20,7 +20,7 @@ func paramToi(s string) (any, error) {
 	return strconv.Atoi(s)
 }
 
-// Checks if all the possible User filters are inside the HTTP URL query
+// Checks the valid User filters inside the HTTP URL query and builds a mongoDB query.
 func buildUserQuery(q url.Values, qb *db.QueryBuilder) {
 	email := q.Get("_id")
 	if exists(email) {
