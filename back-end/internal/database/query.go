@@ -27,20 +27,26 @@ func (qb *QueryBuilder) AddField(k string, v string) {
 // Adds a multi select filter to the query document
 func (qb *QueryBuilder) AddMultiSelectField(k string, v string, sep string) {
 	vals := strings.Split(v, sep)
-	orConditions := bson.A{}
+	ms := bson.A{}
 	for _, item := range vals {
-		orConditions = append(orConditions, bson.D{{Key: k, Value: item}})
+		ms = append(ms, bson.D{{Key: k, Value: item}})
 	}
-	qb.query = append(qb.query, bson.E{Key: "$or", Value: orConditions})
+	qb.query = append(qb.query, bson.E{Key: "$or", Value: ms})
 }
 
 // Adds a range filter to the query document
-func (qb *QueryBuilder) AddRangeField(k string, v string, c string) {
-	rangeCond := bson.E{
-		Key:   k,
-		Value: bson.D{bson.E{Key: c, Value: v}},
+func (qb *QueryBuilder) AddRangeField(k string, v string, min bool) {
+	var cond string
+	if min {
+		cond = "$gte"
+	} else {
+		cond = "$lte"
 	}
-	qb.query = append(qb.query, rangeCond)
+	r := bson.E{
+		Key:   k,
+		Value: bson.D{bson.E{Key: cond, Value: v}},
+	}
+	qb.query = append(qb.query, r)
 }
 
 // Converts the value and adds a simple field filter to the query document
@@ -59,16 +65,16 @@ func (qb *QueryBuilder) AddFieldC(k string, v string, cnv func(s string) (any, e
 // Adds an error to the QueryBuilder if the convertion is unsuccessfull
 func (qb *QueryBuilder) AddMultiSelectC(k string, v string, sep string, cnv func(s string) (any, error)) {
 	vals := strings.Split(v, sep)
-	orConditions := bson.A{}
+	ms := bson.A{}
 	for _, item := range vals {
 		val, err := cnv(item)
 		if err != nil {
 			qb.err = errors.Join(err)
 			return
 		}
-		orConditions = append(orConditions, bson.D{{Key: k, Value: val}})
+		ms = append(ms, bson.D{{Key: k, Value: val}})
 	}
-	qb.query = append(qb.query, bson.E{Key: "$or", Value: orConditions})
+	qb.query = append(qb.query, bson.E{Key: "$or", Value: ms})
 }
 
 // Converts the value and adds a range filter to the query document
@@ -86,11 +92,11 @@ func (qb *QueryBuilder) AddRangeFieldC(k string, v string, min bool, cnv func(s 
 	} else {
 		cond = "$lte"
 	}
-	rangeCond := bson.E{
+	r := bson.E{
 		Key:   k,
 		Value: bson.D{bson.E{Key: cond, Value: val}},
 	}
-	qb.query = append(qb.query, rangeCond)
+	qb.query = append(qb.query, r)
 }
 
 // Returns the error in the QueryBuilder
