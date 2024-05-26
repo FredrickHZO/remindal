@@ -1,7 +1,7 @@
 package main
 
 type User struct {
-	Email    string `bson:"_id" json:"email,omitempty" validate:"required,email"`
+	Email    string `bson:"_id" json:"_id,omitempty" validate:"required,email"`
 	Password string `bson:"password" json:"password,omitempty" validate:"required"`
 	Name     string `bson:"name" json:"name,omitempty" validate:"required"`
 	Surname  string `bson:"surname" json:"surname,omitempty" validate:"required"`
