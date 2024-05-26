@@ -34,7 +34,7 @@ func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var retrievedUserList []User
+	retrievedUserList := []User{}
 	sort := db.CreateSort("age", 1)
 	err = db.GetMany(db.USER_COLLECTION, qbuilder.Query(), sort, &retrievedUserList)
 	if err != nil {
