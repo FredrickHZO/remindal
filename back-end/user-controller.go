@@ -20,16 +20,23 @@ var (
 
 // Handles requests to retrieve a list of users based on query parameters.
 //
-// It converts the query parameters to a MongoDB query, retrieves the matching users from the database,
+// Converts the query parameters to a MongoDB query, retrieves the matching users from the database
 // and writes the result as a JSON response. If an error occurs, it responds with the appropriate error message and status code.
 func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	qbuilder := db.NewQueryBuilder()
+	var (
+		qbuilder = db.NewQueryBuilder()
+		query    = r.URL.Query()
+	)
 	constructUserQuery(query, &qbuilder)
+	err := qbuilder.Err()
+	if err != nil {
+		Eres(w, Err400(err))
+		return
+	}
 
 	var retrievedUserList []User
 	sort := db.CreateSort("age", 1)
-	err := db.GetMany(db.USER_COLLECTION, qbuilder.Query(), sort, &retrievedUserList)
+	err = db.GetMany(db.USER_COLLECTION, qbuilder.Query(), sort, &retrievedUserList)
 	if err != nil {
 		Eres(w, Err500(err))
 		return
@@ -39,7 +46,7 @@ func GetUsersListHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetUserHandler handles requests to retrieve a single user based on their email.
 //
-// It retrieves the email from the query parameters, fetches the user from the database,
+// Retrieves the email from the query parameters, fetches the user from the database
 // and writes the result as a JSON response. If an error occurs, it responds with the appropriate error message and status code.
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := r.URL.Query().Get(EMAIL_KEY)
@@ -60,7 +67,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 // Handles requests to add a new user to the database.
 //
 // Reads the request body, unmarshals the JSON into a UserSchema, and inserts the user into the database.
-// Ifn error occurs, it responds with the appropriate error message and status code.
+// If an error occurs, it responds with the appropriate error message and status code.
 func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
