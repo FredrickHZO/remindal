@@ -29,7 +29,7 @@ type Date struct {
 }
 
 // Checks if the date is a valid one by getting the total days in
-// the specified month and year and comparing the day in input with
+// the specified month for the specific year and comparing the day in input with
 // the total days value. If the input day value is less then 0 or greater
 // than the total days in that given month, return false, true otherwise
 func dayValidation(fl validator.FieldLevel) bool {
@@ -38,16 +38,11 @@ func dayValidation(fl validator.FieldLevel) bool {
 	day := fl.Parent().FieldByName("Day").Int()
 
 	// 32 is greater than any possible value, it will get automatically normalized.
-	// by getting the normalized day and subtracting it to 32, we get the actual correct
-	// number of days for that month in that given year (needed for February)
 	// 2024-02-32 becomes 2024-03-04. 32 - 4 = 29
 	t := time.Date(int(year), time.Month(month), 32, 0, 0, 0, 0, time.UTC)
-	maxDay := 32 - t.Day()
+	maxDays := 32 - t.Day()
 
-	if day < 1 {
-		return false
-	}
-	if int(day) > maxDay {
+	if day < 1 || int(day) > maxDays {
 		return false
 	}
 	return true
