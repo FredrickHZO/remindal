@@ -22,7 +22,7 @@ type Date struct {
 	Type   string   `bson:"type" json:"type" validate:"required"`
 
 	Year    uint16 `bson:"year" json:"year" validate:"required"`
-	Month   uint8  `bson:"month" json:"month" validate:"required,min=0,max=12"`
+	Month   uint8  `bson:"month" json:"month" validate:"required,min=1,max=12"`
 	Day     uint8  `bson:"day" json:"day" validate:"required,dayValidation"`
 	Hours   uint8  `bson:"hours,omitempty" json:"hours,omitempty" validate:"min=0,max=23"`
 	Minutes uint8  `bson:"minutes,omitempty" json:"minutes,omitempty" validate:"min=0,max=59"`
