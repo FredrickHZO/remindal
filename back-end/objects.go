@@ -37,13 +37,17 @@ func dayValidation(fl validator.FieldLevel) bool {
 	month := fl.Parent().FieldByName("Month").Int()
 	day := fl.Parent().FieldByName("Day").Int()
 
+	// 32 is greater than any possible value, it will get automatically normalized.
+	// by getting the normalized day and subtracting it to 32, we get the actual correct
+	// number of days for that month in that given year (needed for February)
+	// 2024-02-32 becomes 2024-03-04. 32 - 4 = 29
 	t := time.Date(int(year), time.Month(month), 32, 0, 0, 0, 0, time.UTC)
-	totalDays := 32 - t.Day()
+	maxDay := 32 - t.Day()
 
-	if day < 0 {
+	if day < 1 {
 		return false
 	}
-	if int(day) > totalDays {
+	if int(day) > maxDay {
 		return false
 	}
 	return true
