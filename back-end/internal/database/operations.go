@@ -72,8 +72,8 @@ func PutOne(collectionName string, doc any) error {
 	return nil
 }
 
-//Opens a connection to the database and deletes a document that matches the provided key-value pair.
-
+// Opens a connection to the database and deletes a document that matches the provided key-value pair.
+//
 // [ErrInternalServerError]: If a connection to the database cannot be established or if the delete operation fails.
 // [ErrNoDocumentsFound]: If no document matches the key-value pair.
 func DeleteOne(collectionName string, key string, value string) error {
