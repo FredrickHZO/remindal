@@ -34,24 +34,9 @@ func (qb *QueryBuilder) AddMultiSelectField(k string, v string, sep string) {
 	qb.query = append(qb.query, bson.E{Key: "$or", Value: ms})
 }
 
-// Adds a range filter to the query document
-func (qb *QueryBuilder) AddRangeField(k string, v string, min bool) {
-	var cond string
-	if min {
-		cond = "$gte"
-	} else {
-		cond = "$lte"
-	}
-	r := bson.E{
-		Key:   k,
-		Value: bson.D{{Key: cond, Value: v}},
-	}
-	qb.query = append(qb.query, r)
-}
-
 // Converts the value and adds a simple field filter to the query document
 // Adds an error to the QueryBuilder if the convertion is unsuccessfull
-func (qb *QueryBuilder) AddFieldC(k string, v string, cnv func(s string) (any, error)) {
+func (qb *QueryBuilder) AddFieldCnv(k string, v string, cnv func(s string) (any, error)) {
 	val, err := cnv(v)
 	if err != nil {
 		qb.err = errors.Join(err)
@@ -62,7 +47,7 @@ func (qb *QueryBuilder) AddFieldC(k string, v string, cnv func(s string) (any, e
 
 // Converts the values and adds a multi select filter to the query document
 // Adds an error to the QueryBuilder if the convertion is unsuccessfull
-func (qb *QueryBuilder) AddMultiSelectC(k string, v string, sep string, cnv func(s string) (any, error)) {
+func (qb *QueryBuilder) AddMultiSelectCnv(k string, v string, sep string, cnv func(s string) (any, error)) {
 	vals := strings.Split(v, sep)
 	ms := bson.A{}
 	for _, item := range vals {
@@ -78,7 +63,7 @@ func (qb *QueryBuilder) AddMultiSelectC(k string, v string, sep string, cnv func
 
 // Converts the value and adds a range filter to the query document
 // Adds an error to the QueryBuilder if the convertion is unsuccessfull
-func (qb *QueryBuilder) AddRangeFieldC(k string, v string, min bool, cnv func(s string) (any, error)) {
+func (qb *QueryBuilder) AddRangeField(k string, v string, min bool, cnv func(s string) (any, error)) {
 	val, err := cnv(v)
 	if err != nil {
 		qb.err = errors.Join(err)

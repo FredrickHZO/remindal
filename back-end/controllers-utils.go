@@ -47,8 +47,8 @@ var (
 	AGE     = "age"
 )
 
-// Checks if a param is not an empty string. I.E. if it exists
-func exists(s string) bool {
+// Checks if a param is not an empty string. I.E. if it has value
+func hasValue(s string) bool {
 	return s != ""
 }
 
@@ -59,49 +59,39 @@ func paramToi(s string) (any, error) {
 
 // If the given parameters used as ranges do not exist, then a single filter is added
 func addFilterIfNoRangeExists(k string, v string, min string, max string, qb *db.QueryBuilder, cnv func(s string) (any, error)) {
-	if exists(min) || exists(max) {
+	if hasValue(min) || hasValue(max) {
 		return
 	}
-	if cnv != nil {
-		qb.AddFieldC(k, v, cnv)
-	} else {
-		qb.AddField(k, v)
-	}
+	qb.AddFieldCnv(k, v, cnv)
 }
 
+// Adds a range filter with a min and max value to the query. If both values are empty strings
+// this is a no operation and no filter is added.
 func addRangeFilter(k string, min string, max string, qb *db.QueryBuilder, cnv func(s string) (any, error)) {
-	if exists(min) {
-		if cnv != nil {
-			qb.AddRangeFieldC(k, min, true, cnv)
-		} else {
-			qb.AddRangeField(k, min, true)
-		}
+	if hasValue(min) {
+		qb.AddRangeField(k, min, true, cnv)
 	}
-	if exists(max) {
-		if cnv != nil {
-			qb.AddRangeFieldC(k, max, false, cnv)
-		} else {
-			qb.AddRangeField(k, min, false)
-		}
+	if hasValue(max) {
+		qb.AddRangeField(k, max, false, cnv)
 	}
 }
 
 // Checks the valid User filters inside the HTTP URL query and builds a mongoDB query.
 func buildUserQuery(q url.Values, qb *db.QueryBuilder) {
 	email := q.Get(EMAIL)
-	if exists(email) {
+	if hasValue(email) {
 		qb.AddField(EMAIL, email)
 	}
 	password := q.Get(PASSWORD)
-	if exists(password) {
+	if hasValue(password) {
 		qb.AddField(PASSWORD, password)
 	}
 	names := q.Get(NAME)
-	if exists(names) {
+	if hasValue(names) {
 		qb.AddMultiSelectField(NAME, names, MULTI_SEL_SEPARATOR)
 	}
 	surnames := q.Get(SURNAME)
-	if exists(surnames) {
+	if hasValue(surnames) {
 		qb.AddMultiSelectField(SURNAME, surnames, MULTI_SEL_SEPARATOR)
 	}
 
@@ -112,14 +102,14 @@ func buildUserQuery(q url.Values, qb *db.QueryBuilder) {
 	addFilterIfNoRangeExists(AGE, age, minAge, maxAge, qb, paramToi)
 }
 
-// Checks the valid User filters inside the HTTP URL query and builds a mongoDB query.
+// Checks the valid Calendar filters inside the HTTP URL query and builds a mongoDB query.
 func buildCalendarQuery(q url.Values, qb *db.QueryBuilder) {
 	labels := q.Get(LABELS)
-	if exists(labels) {
+	if hasValue(labels) {
 		qb.AddMultiSelectField(LABELS, labels, MULTI_SEL_SEPARATOR)
 	}
 	calType := q.Get(CALENDAR_TYPE)
-	if exists(calType) {
+	if hasValue(calType) {
 		qb.AddField(CALENDAR_TYPE, calType)
 	}
 
