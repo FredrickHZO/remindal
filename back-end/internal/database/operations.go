@@ -37,7 +37,7 @@ func GetMany(collectionName string, query bson.D, sort bson.D, dest any) error {
 //
 // [ErrInternalServerError]: If a connection to the database cannot be established or if the retrieval operation fails.
 // [ErrNoDocumentsFound]: If no document matches the key-value pair.
-func GetOne(collectionName string, key string, value string, dest any) error {
+func GetOne(collectionName string, key string, value any, dest any) error {
 	client, err := openConnection()
 	if err != nil {
 		return err
@@ -76,7 +76,7 @@ func PutOne(collectionName string, doc any) error {
 //
 // [ErrInternalServerError]: If a connection to the database cannot be established or if the delete operation fails.
 // [ErrNoDocumentsFound]: If no document matches the key-value pair.
-func DeleteOne(collectionName string, key string, value string) error {
+func DeleteOne(collectionName string, key string, value any) error {
 	client, err := openConnection()
 	if err != nil {
 		return err
@@ -84,9 +84,12 @@ func DeleteOne(collectionName string, key string, value string) error {
 	defer closeConnection(client)
 
 	coll := client.Database(DB_NAME).Collection(collectionName)
-	_, err = coll.DeleteOne(context.TODO(), bson.D{{Key: key, Value: value}})
+	res, err := coll.DeleteOne(context.TODO(), bson.D{{Key: key, Value: value}})
 	if err != nil {
 		return err
+	}
+	if res.DeletedCount == 0 {
+		return mongo.ErrNoDocuments
 	}
 	return nil
 }
