@@ -22,11 +22,18 @@ func handleUserRoutes() {
 	router.HandleFunc("/user/list", GetUsersListHandler).Methods("GET")
 }
 
+func handleDateRoutes() {
+	router.HandleFunc("/date/list", GetDateListHandler).Methods("GET")
+	router.HandleFunc("/date/post", PutDateHandler).Methods("POST")
+	router.HandleFunc("/date/del", DelDateHandler).Methods("DELETE")
+}
+
 func main() {
 	flag.StringVar(&port, "port", ":8080", "The port the server will use to listen to requests")
 	flag.Parse()
 
 	handleUserRoutes()
+	handleDateRoutes()
 
 	handler := cors.Default().Handler(router)
 	log.Print("server will be listening on port ", port)
