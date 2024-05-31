@@ -11,12 +11,8 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-var (
-	EMAIL_KEY = "_id"
-
-	errNoEmailProvided = errors.New("no email provided")
-	errInvalidUserInfo = errors.New("invalid or missing user info")
-)
+var EMAIL_KEY = "_id"
+var errNoEmailProvided = errors.New("no email provided")
 
 // Handles requests to retrieve a list of users based on query parameters.
 //
@@ -90,7 +86,7 @@ func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 	validate := validator.New()
 	err = validate.Struct(newuser)
 	if err != nil {
-		Eres(w, Err400(errInvalidUserInfo))
+		Eres(w, Err400(err))
 		return
 	}
 
