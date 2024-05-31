@@ -10,8 +10,8 @@ var MULTI_SEL_SEPARATOR = ","
 
 // Possible keys that make up a calendar query
 var (
-	CALENDAR_TYPE = "type"
-	LABELS        = "labels"
+	DATE_TYPE = "type"
+	LABELS    = "labels"
 
 	MIN_YEAR = "minyear"
 	MAX_YEAR = "maxyear"
@@ -62,7 +62,9 @@ func addFilterIfNoRangeExists(k string, v string, min string, max string, qb *db
 	if hasValue(min) || hasValue(max) {
 		return
 	}
-	qb.AddFieldCnv(k, v, cnv)
+	if hasValue(v) {
+		qb.AddFieldCnv(k, v, cnv)
+	}
 }
 
 // Adds a range filter with a min and max value to the query. If both values are empty strings
@@ -103,14 +105,14 @@ func buildUserQuery(q url.Values, qb *db.QueryBuilder) {
 }
 
 // Checks the valid Calendar filters inside the HTTP URL query and builds a mongoDB query.
-func buildCalendarQuery(q url.Values, qb *db.QueryBuilder) {
+func buildDateQuery(q url.Values, qb *db.QueryBuilder) {
 	labels := q.Get(LABELS)
 	if hasValue(labels) {
 		qb.AddMultiSelectField(LABELS, labels, MULTI_SEL_SEPARATOR)
 	}
-	calType := q.Get(CALENDAR_TYPE)
-	if hasValue(calType) {
-		qb.AddField(CALENDAR_TYPE, calType)
+	dateType := q.Get(DATE_TYPE)
+	if hasValue(dateType) {
+		qb.AddField(DATE_TYPE, dateType)
 	}
 
 	minYear := q.Get(MIN_YEAR)
