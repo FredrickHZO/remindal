@@ -41,6 +41,7 @@ docs
 
 # build
 *.exe
+remindal
 
 # tokens
 mongouri
