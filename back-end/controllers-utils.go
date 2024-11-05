@@ -6,10 +6,14 @@ import (
 	"strconv"
 )
 
-var MULTI_SEL_SEPARATOR = ","
+// alias for conversion functions
+type convFunc func(s string) (any, error)
+
+// character used to separate list of item in http query
+const MULTI_SEL_SEPARATOR = ","
 
 // Possible keys that make up a calendar query
-var (
+const (
 	DATE_TYPE = "type"
 	LABELS    = "labels"
 
@@ -35,7 +39,7 @@ var (
 )
 
 // Possible keys that make up a user query
-var (
+const (
 	EMAIL    = "_id"
 	PASSWORD = "password"
 
@@ -58,90 +62,94 @@ func paramToi(s string) (any, error) {
 }
 
 // If the given parameters used as ranges do not exist, then a single filter is added
-func addFilterIfNoRangeExists(k string, v string, min string, max string, qb *db.QueryBuilder, cnv func(s string) (any, error)) {
-	if hasValue(min) || hasValue(max) {
+func addFilterIfNoRangeExists(k, v, min, max string, c convFunc, b *db.QueryBuilder) {
+	if hasValue(min) || hasValue(max) || !hasValue(v) {
 		return
 	}
-	if hasValue(v) {
-		qb.AddFieldCnv(k, v, cnv)
-	}
+	b.AddFieldCnv(k, v, c)
 }
 
 // Adds a range filter with a min and max value to the query. If both values are empty strings
 // this is a no operation and no filter is added.
-func addRangeFilter(k string, min string, max string, qb *db.QueryBuilder, cnv func(s string) (any, error)) {
+func addRangeFilter(k, min, max string, c convFunc, b *db.QueryBuilder) {
 	if hasValue(min) {
-		qb.AddRangeField(k, min, true, cnv)
+		b.AddRangeField(k, min, true, c)
 	}
 	if hasValue(max) {
-		qb.AddRangeField(k, max, false, cnv)
+		b.AddRangeField(k, max, false, c)
 	}
+}
+
+func addSimpleFilter(k, v string, b *db.QueryBuilder) {
+	if !hasValue(v) {
+		return
+	}
+	b.AddField(k, v)
+}
+
+func addMultiSelectFilter(k, v, sep string, b *db.QueryBuilder) {
+	if !hasValue(v) {
+		return
+	}
+	b.AddMultiSelectField(k, v, sep)
 }
 
 // Checks the valid User filters inside the HTTP URL query and builds a mongoDB query.
-func buildUserQuery(q url.Values, qb *db.QueryBuilder) {
+func buildUserQuery(q url.Values, b *db.QueryBuilder) {
 	email := q.Get(EMAIL)
-	if hasValue(email) {
-		qb.AddField(EMAIL, email)
-	}
+	addSimpleFilter(EMAIL, email, b)
+
 	password := q.Get(PASSWORD)
-	if hasValue(password) {
-		qb.AddField(PASSWORD, password)
-	}
+	addSimpleFilter(PASSWORD, password, b)
+
 	names := q.Get(NAME)
-	if hasValue(names) {
-		qb.AddMultiSelectField(NAME, names, MULTI_SEL_SEPARATOR)
-	}
+	addMultiSelectFilter(NAME, names, MULTI_SEL_SEPARATOR, b)
+
 	surnames := q.Get(SURNAME)
-	if hasValue(surnames) {
-		qb.AddMultiSelectField(SURNAME, surnames, MULTI_SEL_SEPARATOR)
-	}
+	addMultiSelectFilter(SURNAME, surnames, MULTI_SEL_SEPARATOR, b)
 
 	minAge := q.Get(MIN_AGE)
 	maxAge := q.Get(MAX_AGE)
-	addRangeFilter(AGE, minAge, maxAge, qb, paramToi)
+	addRangeFilter(AGE, minAge, maxAge, paramToi, b)
 	age := q.Get(AGE)
-	addFilterIfNoRangeExists(AGE, age, minAge, maxAge, qb, paramToi)
+	addFilterIfNoRangeExists(AGE, age, minAge, maxAge, paramToi, b)
 }
 
 // Checks the valid Calendar filters inside the HTTP URL query and builds a mongoDB query.
-func buildDateQuery(q url.Values, qb *db.QueryBuilder) {
+func buildDateQuery(q url.Values, b *db.QueryBuilder) {
 	labels := q.Get(LABELS)
-	if hasValue(labels) {
-		qb.AddMultiSelectField(LABELS, labels, MULTI_SEL_SEPARATOR)
-	}
+	addMultiSelectFilter(LABELS, labels, MULTI_SEL_SEPARATOR, b)
+
 	dateType := q.Get(DATE_TYPE)
-	if hasValue(dateType) {
-		qb.AddField(DATE_TYPE, dateType)
-	}
+	addSimpleFilter(DATE_TYPE, dateType, b)
 
 	minYear := q.Get(MIN_YEAR)
 	maxYear := q.Get(MAX_YEAR)
-	addRangeFilter(YEAR, minYear, maxYear, qb, paramToi)
+	addRangeFilter(YEAR, minYear, maxYear, paramToi, b)
 	year := q.Get(YEAR)
-	addFilterIfNoRangeExists(YEAR, year, minYear, maxYear, qb, paramToi)
+	addFilterIfNoRangeExists(YEAR, year, minYear, maxYear, paramToi, b)
 
 	minMonth := q.Get(MIN_MONTH)
 	maxMonth := q.Get(MAX_MONTH)
-	addRangeFilter(MONTH, minMonth, maxMonth, qb, paramToi)
+	addRangeFilter(MONTH, minMonth, maxMonth, paramToi, b)
 	month := q.Get(MONTH)
-	addFilterIfNoRangeExists(MONTH, month, minMonth, maxMonth, qb, paramToi)
+	addFilterIfNoRangeExists(MONTH, month, minMonth, maxMonth, paramToi, b)
 
 	minDay := q.Get(MIN_DAY)
 	maxDay := q.Get(MAX_DAY)
-	addRangeFilter(DAY, minDay, maxDay, qb, paramToi)
+	addRangeFilter(DAY, minDay, maxDay, paramToi, b)
 	day := q.Get(DAY)
-	addFilterIfNoRangeExists(DAY, day, minDay, maxDay, qb, paramToi)
+	addFilterIfNoRangeExists(DAY, day, minDay, maxDay, paramToi, b)
 
 	minHours := q.Get(MIN_HOURS)
 	maxHours := q.Get(MAX_HOURS)
-	addRangeFilter(HOURS, minHours, maxHours, qb, paramToi)
+	addRangeFilter(HOURS, minHours, maxHours, paramToi, b)
 	hours := q.Get(HOURS)
-	addFilterIfNoRangeExists(HOURS, hours, minHours, maxHours, qb, paramToi)
+	addFilterIfNoRangeExists(HOURS, hours, minHours, maxHours, paramToi, b)
 
 	minMinutes := q.Get(MIN_MINUTES)
 	maxMinutes := q.Get(MAX_MINUTES)
-	addRangeFilter(MINUTES, minMinutes, maxMinutes, qb, paramToi)
+	addRangeFilter(MINUTES, minMinutes, maxMinutes, paramToi, b)
 	minutes := q.Get(MINUTES)
-	addFilterIfNoRangeExists(MINUTES, minutes, minMinutes, maxMinutes, qb, paramToi)
+	addFilterIfNoRangeExists(MINUTES, minutes, minMinutes, maxMinutes, paramToi, b)
 }
